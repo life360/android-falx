@@ -1,5 +1,11 @@
 apply plugin: 'com.android.library'
 
+// For jitpack
+apply plugin: 'com.github.dcendents.android-maven'
+
+group='com.github.life360'
+
+
 android {
     compileSdkVersion 26
     buildToolsVersion "26.0.0"
