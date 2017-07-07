@@ -1,0 +1,24 @@
+<resources>
+    <!--
+    Before you run your application, you need a Google Maps API key.
+
+    To get one, follow this link, follow the directions and press "Create" at the end:
+
+    https://console.developers.google.com/flows/enableapi?apiid=maps_android_backend&keyType=CLIENT_SIDE_ANDROID&r=1C:F1:FE:57:1D:1C:9F:AA:78:97:84:2A:0F:9A:CD:98:9E:9C:FD:04%3Bcom.life360.batterytestapp
+
+    You can also add your credentials to an existing key, using these values:
+
+    Package name:
+    1C:F1:FE:57:1D:1C:9F:AA:78:97:84:2A:0F:9A:CD:98:9E:9C:FD:04
+
+    SHA-1 certificate fingerprint:
+    1C:F1:FE:57:1D:1C:9F:AA:78:97:84:2A:0F:9A:CD:98:9E:9C:FD:04
+
+    Alternatively, follow the directions here:
+    https://developers.google.com/maps/documentation/android/start#get-key
+
+    Once you have your key (it starts with "AIza"), replace the "google_maps_key"
+    string in this file.
+    -->
+    <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyC78lKNUhgYQv0TssDuuhmcsmFBAh9rv6I</string>
+</resources>
