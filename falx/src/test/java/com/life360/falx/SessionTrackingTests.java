@@ -4,6 +4,7 @@ import android.content.Context;
 
 import com.life360.falx.dagger.DaggerTestUtilComponent;
 import com.life360.falx.dagger.FakeDateTimeModule;
+import com.life360.falx.dagger.TestLoggerModule;
 import com.life360.falx.dagger.TestUtilComponent;
 import com.life360.falx.util.TestClock;
 
@@ -17,7 +18,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * Unit tests for session tracking.
- *
  */
 @RunWith(MockitoJUnitRunner.class)
 public class SessionTrackingTests {
@@ -33,6 +33,7 @@ public class SessionTrackingTests {
     public void sessionTest() throws Exception {
         TestUtilComponent testUtilComponent = DaggerTestUtilComponent.builder()
                 .fakeDateTimeModule(new FakeDateTimeModule())
+                .testLoggerModule(new TestLoggerModule())
                 .build();
 
         FalxApi api = new FalxApi(mockContext, testUtilComponent);
@@ -116,6 +117,5 @@ public class SessionTrackingTests {
 
         Assert.assertEquals(api.lastSessionData.startTime, secondSessionStartTime);
         Assert.assertEquals(api.lastSessionData.duration, currentTime - secondSessionStartTime);
-
     }
 }

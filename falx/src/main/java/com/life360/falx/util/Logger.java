@@ -28,17 +28,4 @@ public interface Logger {
     int e(String tag, String msg);
 
     int e(String tag, String msg, Throwable tr);
-
-//    public int wtf(String tag, String msg) {
-//        throw new RuntimeException("Stub!");
-//    }
-//
-//    public int wtf(String tag, Throwable tr) {
-//        throw new RuntimeException("Stub!");
-//    }
-//
-//    public int wtf(String tag, String msg, Throwable tr) {
-//        throw new RuntimeException("Stub!");
-//    }
-
 }

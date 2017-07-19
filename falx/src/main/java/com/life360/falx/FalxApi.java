@@ -9,6 +9,7 @@ import android.util.Log;
 
 import com.life360.falx.dagger.DaggerUtilComponent;
 import com.life360.falx.dagger.DateTimeModule;
+import com.life360.falx.dagger.LoggerModule;
 import com.life360.falx.dagger.UtilComponent;
 import com.life360.falx.util.Clock;
 import com.life360.falx.util.Logger;
@@ -93,7 +94,7 @@ public class FalxApi {
         return true;
     }
 
-    @VisibleForTesting
+    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     void onSessionEnded() {
         if (endTime < startTime) {
             logger.e(TAG, "Likeley error in timer schedule to mark end of a session");
@@ -123,19 +124,19 @@ public class FalxApi {
 
     private Context application;        // Application application
 
-    @VisibleForTesting
+    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     @Inject Clock clock;
 
-    @VisibleForTesting
+    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     @Inject Logger logger;
 
     private long startTime;
     private long endTime;
 
-    @VisibleForTesting
+    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     Timer sessionEndTimer;
 
-    @VisibleForTesting
+    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     SessionData lastSessionData;
 
     private UtilComponent utilComponent;
@@ -145,6 +146,7 @@ public class FalxApi {
         UtilComponent utilComponent = DaggerUtilComponent.builder()
                 // list of modules that are part of this component need to be created here too
                 .dateTimeModule(new DateTimeModule())
+                .loggerModule(new LoggerModule())
                 .build();
 
         init(context, utilComponent);
