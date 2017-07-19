@@ -27,6 +27,20 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         FalxApi.init(this);
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        FalxApi.getInstance(this).startSession(this);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        FalxApi.getInstance(this).endSession(this);
+    }
+
 
     /**
      * Manipulates the map once available.
