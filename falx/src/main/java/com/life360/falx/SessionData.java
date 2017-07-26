@@ -5,8 +5,8 @@ package com.life360.falx;
  */
 
 public class SessionData {
-    long startTime;
-    long duration;
+    public long startTime;
+    public long duration;
 
     public SessionData(long startTime, long duration) {
         this.startTime = startTime;

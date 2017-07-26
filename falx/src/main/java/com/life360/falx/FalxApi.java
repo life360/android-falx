@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.VisibleForTesting;
-import android.text.format.DateUtils;
 import android.util.Log;
 
 import com.life360.falx.dagger.DaggerUtilComponent;
@@ -16,13 +15,10 @@ import com.life360.falx.monitor.AppStateListener;
 import com.life360.falx.monitor.AppStateMonitor;
 import com.life360.falx.monitor.Monitor;
 import com.life360.falx.monitor.NetworkMonitor;
-import com.life360.falx.util.Clock;
 import com.life360.falx.util.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import javax.inject.Inject;
 
@@ -73,7 +69,7 @@ public class FalxApi {
         else if ((monitorFlags & MONITOR_NETWORK) == MONITOR_NETWORK) {
             monitors.add(new NetworkMonitor());
         }
-        // todo and so on
+        // todo: and so on
     }
 
     /**
@@ -82,23 +78,7 @@ public class FalxApi {
      * @return
      */
     public boolean startSession(Activity activity) {
-        // Is a session in progress?
-        if (startTime == 0) {
-            startTime = clock.currentTimeMillis();
-
-            logger.d(TAG, "Session started... at: " + startTime);
-
-            onAppStateForeground();
-        } else {
-            logger.d(TAG, "Session already in progress, started at: " + startTime);
-
-            // reset session end timer if there is one
-            if (sessionEndTimer != null) {
-                sessionEndTimer.cancel();
-                sessionEndTimer = null;
-            }
-        }
-
+        onAppStateForeground();
         return true;
     }
 
@@ -108,80 +88,21 @@ public class FalxApi {
      * @return
      */
     public boolean endSession(Activity activity) {
-        endTime = clock.currentTimeMillis();
-
-        // Start a timer to end the session in TIME_BETWEEN_ACTIVITY_TRANSITION milliseconds
-        if (sessionEndTimer != null) {
-            sessionEndTimer.cancel();
-            sessionEndTimer = null;
-        }
-
-        sessionEndTimer = new Timer();
-
-        TimerTask task = new TimerTask() {
-
-            @Override
-            public void run() {
-                onSessionEnded();
-            }
-        };
-
-        sessionEndTimer.schedule(task, TIME_BETWEEN_ACTIVITY_TRANSITION);
-
-        return true;
-    }
-
-    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    void onSessionEnded() {
-        if (endTime < startTime) {
-            logger.e(TAG, "Likeley error in timer schedule to mark end of a session");
-
-            endTime = startTime;
-        }
-
-        logger.d(TAG, "Session completed, duration (seconds): " + ((endTime - startTime) / 1000));
-
-        lastSessionData = new SessionData(startTime, (endTime - startTime));
-
-        startTime = 0;
-        endTime = 0;
-
-        if (sessionEndTimer != null) {
-            sessionEndTimer.cancel();
-            sessionEndTimer = null;
-        }
-
         onAppStateBackground();
+        return true;
     }
 
     private static final String TAG = "FalxApi";
 
     private static volatile FalxApi falxApi = null;
 
-    @VisibleForTesting
-    static final long TIME_BETWEEN_ACTIVITY_TRANSITION = 5 * DateUtils.SECOND_IN_MILLIS;
-
-
-    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    @Inject Clock clock;
-
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     @Inject Logger logger;
-
-
-    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    Timer sessionEndTimer;
-
-    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    SessionData lastSessionData;
 
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     List<AppStateListener> appStateListeners;
 
     private Context application;        // Application application
-    private long startTime;
-
-    private long endTime;
 
     private UtilComponent utilComponent;
 
@@ -247,7 +168,6 @@ public class FalxApi {
 
     public Observable<AppState> appStateObservable() {
 
-        // remon.test
         return Observable.create(new ObservableOnSubscribe<AppState>() {
             @Override
             public void subscribe(@io.reactivex.annotations.NonNull final ObservableEmitter<AppState> appStateEmitter) throws Exception {

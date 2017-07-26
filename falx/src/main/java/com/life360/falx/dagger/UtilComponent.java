@@ -1,6 +1,7 @@
 package com.life360.falx.dagger;
 
 import com.life360.falx.FalxApi;
+import com.life360.falx.monitor.AppStateMonitor;
 
 import javax.inject.Singleton;
 
@@ -14,4 +15,5 @@ import dagger.Component;
 @Component(modules = {DateTimeModule.class, LoggerModule.class})
 public interface UtilComponent {
     void inject(FalxApi api);
+    void inject(AppStateMonitor monitor);
 }
