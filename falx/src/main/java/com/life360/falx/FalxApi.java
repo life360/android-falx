@@ -11,18 +11,34 @@ import com.life360.falx.dagger.DaggerUtilComponent;
 import com.life360.falx.dagger.DateTimeModule;
 import com.life360.falx.dagger.LoggerModule;
 import com.life360.falx.dagger.UtilComponent;
+import com.life360.falx.monitor.AppState;
+import com.life360.falx.monitor.AppStateListener;
+import com.life360.falx.monitor.AppStateMonitor;
+import com.life360.falx.monitor.Monitor;
+import com.life360.falx.monitor.NetworkMonitor;
 import com.life360.falx.util.Clock;
 import com.life360.falx.util.Logger;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import javax.inject.Inject;
 
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.functions.Cancellable;
+
 /**
  * Created by remon on 6/27/17.
  */
 public class FalxApi {
+
+    public static final int MONITOR_APP_STATE = 0x01;
+    public static final int MONITOR_NETWORK = 0x02;
+    // .. and so on
 
     public static FalxApi getInstance(Context context) {
         if (falxApi == null) {
@@ -42,6 +58,25 @@ public class FalxApi {
     }
 
     /**
+     * Add 1 or more Monitors using a integer to specify which monitors to add.
+     * The monitor flags are specified by integer constants MONITOR_*
+     * @param monitorFlags
+     */
+    public void addMonitors(int monitorFlags) {
+        if (!monitors.isEmpty()) {
+            monitors.clear();
+        }
+
+        if ((monitorFlags & MONITOR_APP_STATE) == MONITOR_APP_STATE) {
+            monitors.add(new AppStateMonitor(appStateObservable()));
+        }
+        else if ((monitorFlags & MONITOR_NETWORK) == MONITOR_NETWORK) {
+            monitors.add(new NetworkMonitor());
+        }
+        // todo and so on
+    }
+
+    /**
      * Marks start of a session, call when a Activity comes to the foreground (Activity.onStart)
      * @param activity
      * @return
@@ -52,6 +87,8 @@ public class FalxApi {
             startTime = clock.currentTimeMillis();
 
             logger.d(TAG, "Session started... at: " + startTime);
+
+            onAppStateForeground();
         } else {
             logger.d(TAG, "Session already in progress, started at: " + startTime);
 
@@ -113,6 +150,8 @@ public class FalxApi {
             sessionEndTimer.cancel();
             sessionEndTimer = null;
         }
+
+        onAppStateBackground();
     }
 
     private static final String TAG = "FalxApi";
@@ -122,7 +161,6 @@ public class FalxApi {
     @VisibleForTesting
     static final long TIME_BETWEEN_ACTIVITY_TRANSITION = 5 * DateUtils.SECOND_IN_MILLIS;
 
-    private Context application;        // Application application
 
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     @Inject Clock clock;
@@ -130,8 +168,6 @@ public class FalxApi {
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     @Inject Logger logger;
 
-    private long startTime;
-    private long endTime;
 
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     Timer sessionEndTimer;
@@ -139,7 +175,17 @@ public class FalxApi {
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     SessionData lastSessionData;
 
+    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    List<AppStateListener> appStateListeners;
+
+    private Context application;        // Application application
+    private long startTime;
+
+    private long endTime;
+
     private UtilComponent utilComponent;
+
+    private ArrayList<Monitor> monitors = new ArrayList<>();
 
     private FalxApi(@NonNull Context context) {
         // Create our UtilComponent module, since it will be only used by FalxApi
@@ -169,6 +215,64 @@ public class FalxApi {
         // Create our UtilComponent module, since it will be only used by FalxApi
         this.utilComponent = utilComponent;
         this.utilComponent.inject(this);
+
+        appStateListeners = new ArrayList<>();
+    }
+
+    public void addAppStateListener(AppStateListener listener) {
+        appStateListeners.add(listener);
+    }
+
+    public void removeAppStateListener(AppStateListener listener) {
+        appStateListeners.remove(listener);
+    }
+
+    public void removeAllAppStateListeners() {
+        appStateListeners.clear();
+    }
+
+    @VisibleForTesting
+    void onAppStateForeground() {
+        for (AppStateListener listener : appStateListeners) {
+            listener.onEnterForeground();
+        }
+    }
+
+    @VisibleForTesting
+    void onAppStateBackground() {
+        for (AppStateListener listener : appStateListeners) {
+            listener.onEnterBackground();
+        }
+    }
+
+    public Observable<AppState> appStateObservable() {
+
+        // remon.test
+        return Observable.create(new ObservableOnSubscribe<AppState>() {
+            @Override
+            public void subscribe(@io.reactivex.annotations.NonNull final ObservableEmitter<AppState> appStateEmitter) throws Exception {
+
+                final AppStateListener appStateListener = new AppStateListener() {
+                    @Override
+                    public void onEnterBackground() {
+                        appStateEmitter.onNext(AppState.BACKGROUND);
+                    }
+
+                    @Override
+                    public void onEnterForeground() {
+                        appStateEmitter.onNext(AppState.FOREGROUND);
+                    }
+                };
+
+                addAppStateListener(appStateListener);
+
+                appStateEmitter.setCancellable(new Cancellable() {
+                    @Override public void cancel() throws Exception {
+                        removeAppStateListener(appStateListener);
+                    }
+                });
+            }
+        });
     }
 
 }

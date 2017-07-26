@@ -23,6 +23,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        FalxApi.getInstance(this).addMonitors(FalxApi.MONITOR_APP_STATE | FalxApi.MONITOR_NETWORK);
     }
 
     @Override
