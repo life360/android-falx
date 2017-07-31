@@ -12,6 +12,8 @@ buildscript {
 
         // For jitpack
         classpath 'com.github.dcendents:android-maven-gradle-plugin:1.5'
+
+        classpath "io.realm:realm-gradle-plugin:3.5.0"
     }
 }
 

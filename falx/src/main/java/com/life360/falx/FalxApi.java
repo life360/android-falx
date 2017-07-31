@@ -10,6 +10,7 @@ import com.life360.falx.dagger.DaggerUtilComponent;
 import com.life360.falx.dagger.DateTimeModule;
 import com.life360.falx.dagger.LoggerModule;
 import com.life360.falx.dagger.UtilComponent;
+import com.life360.falx.model.FalxData;
 import com.life360.falx.monitor.AppState;
 import com.life360.falx.monitor.AppStateListener;
 import com.life360.falx.monitor.AppStateMonitor;
@@ -26,6 +27,9 @@ import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.functions.Cancellable;
+import io.realm.Realm;
+import io.realm.RealmQuery;
+import io.realm.RealmResults;
 
 /**
  * Created by remon on 6/27/17.
@@ -138,6 +142,8 @@ public class FalxApi {
         this.utilComponent.inject(this);
 
         appStateListeners = new ArrayList<>();
+
+        Realm.init(context);
     }
 
     public void addAppStateListener(AppStateListener listener) {
@@ -195,4 +201,15 @@ public class FalxApi {
         });
     }
 
+    public void testStoredData() {
+        Realm realm = Realm.getDefaultInstance();
+        RealmQuery<FalxData> query = realm.where(FalxData.class);
+
+        RealmResults<FalxData> result = query.findAll();
+
+        logger.d(TAG, "Stored data: ");
+        for (FalxData data : result) {
+            logger.d(TAG, data.toString());
+        }
+    }
 }

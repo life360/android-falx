@@ -32,8 +32,12 @@ public class AppStateMonitorTest {
                 .testLoggerModule(new TestLoggerModule())
                 .build();
 
-        AppStateMonitor monitor = new AppStateMonitor(testUtilComponent, appStateObservable());
-        Assert.assertNotNull(monitor);
+        AppStateMonitor monitor = new AppStateMonitor(testUtilComponent, appStateObservable()) {
+            @Override
+            protected void saveToDataStore() {
+                // do nothing.
+            }
+        };
 
         TestClock testClock = (TestClock) monitor.clock;
 
@@ -55,7 +59,7 @@ public class AppStateMonitorTest {
         monitor.onSessionEnded();
 
         Assert.assertEquals(monitor.lastSessionData.startTime, startTime);
-        Assert.assertEquals(monitor.lastSessionData.duration, currentTime - startTime);
+        Assert.assertEquals(monitor.lastSessionData.getDuration(), currentTime - startTime);
 
         monitor.stop();
     }
@@ -66,8 +70,12 @@ public class AppStateMonitorTest {
                 .fakeDateTimeModule(new FakeDateTimeModule())
                 .build();
 
-        AppStateMonitor monitor = new AppStateMonitor(testUtilComponent, appStateObservable());
-        Assert.assertNotNull(monitor);
+        AppStateMonitor monitor = new AppStateMonitor(testUtilComponent, appStateObservable()) {
+            @Override
+            protected void saveToDataStore() {
+                // do nothing.
+            }
+        };
 
         TestClock testClock = (TestClock) monitor.clock;
 
@@ -98,7 +106,7 @@ public class AppStateMonitorTest {
         monitor.onSessionEnded();
 
         Assert.assertEquals(monitor.lastSessionData.startTime, firstSessionStartTime);
-        Assert.assertEquals(monitor.lastSessionData.duration, currentTime - firstSessionStartTime);
+        Assert.assertEquals(monitor.lastSessionData.getDuration(), currentTime - firstSessionStartTime);
 
         // Start another session after the time between session is expired
         currentTime += (AppStateMonitor.TIME_BETWEEN_ACTIVITY_TRANSITION + 1);
@@ -114,7 +122,7 @@ public class AppStateMonitorTest {
         monitor.onSessionEnded();
 
         Assert.assertEquals(monitor.lastSessionData.startTime, secondSessionStartTime);
-        Assert.assertEquals(monitor.lastSessionData.duration, currentTime - secondSessionStartTime);
+        Assert.assertEquals(monitor.lastSessionData.getDuration(), currentTime - secondSessionStartTime);
 
         monitor.stop();
     }

@@ -10,6 +10,10 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.life360.falx.FalxApi;
+import com.life360.falx.model.ExtraData;
+import com.life360.falx.model.FalxData;
+
+import java.util.ArrayList;
 
 public class MainActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -30,6 +34,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     protected void onStart() {
         super.onStart();
+
+        FalxApi.getInstance(this).testStoredData();
 
         FalxApi.getInstance(this).startSession(this);
     }
