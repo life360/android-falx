@@ -1,5 +1,7 @@
 package com.life360.falx.monitor;
 
+import io.realm.RealmObject;
+
 /**
  * Created by remon on 7/19/17.
  */

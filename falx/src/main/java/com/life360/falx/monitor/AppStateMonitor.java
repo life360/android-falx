@@ -3,11 +3,12 @@ package com.life360.falx.monitor;
 import android.support.annotation.VisibleForTesting;
 import android.text.format.DateUtils;
 
-import com.life360.falx.SessionData;
 import com.life360.falx.dagger.DaggerUtilComponent;
 import com.life360.falx.dagger.DateTimeModule;
 import com.life360.falx.dagger.LoggerModule;
 import com.life360.falx.dagger.UtilComponent;
+import com.life360.falx.model.FalxData;
+import com.life360.falx.model.SessionData;
 import com.life360.falx.util.Clock;
 import com.life360.falx.util.Logger;
 
@@ -158,7 +159,10 @@ public class AppStateMonitor extends Monitor {
 
         logger.d(TAG, "Session completed, duration (seconds): " + ((endTime - startTime) / 1000));
 
-        lastSessionData = new SessionData(startTime, (endTime - startTime));
+        lastSessionData = new SessionData(AppState.FOREGROUND, startTime, endTime);
+
+        // Save to local data store
+        saveToDataStore();
 
         startTime = 0;
         endTime = 0;
@@ -167,6 +171,12 @@ public class AppStateMonitor extends Monitor {
             sessionEndTimer.cancel();
             sessionEndTimer = null;
         }
+    }
+
+    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    protected void saveToDataStore() {
+        FalxData falxData = new FalxData(lastSessionData.getName(), endTime, lastSessionData.getExtras());
+        falxData.save();
     }
 
     @Override

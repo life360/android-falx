@@ -5,6 +5,17 @@ package com.life360.falx.monitor;
  */
 
 public enum AppState {
-    FOREGROUND,
-    BACKGROUND
+    FOREGROUND("foreground"),
+    BACKGROUND("background");
+
+    AppState(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String toString() {
+        return name;
+    }
+
+    private final String name;
 }
