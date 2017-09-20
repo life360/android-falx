@@ -11,11 +11,13 @@ import com.life360.falx.dagger.DateTimeModule;
 import com.life360.falx.dagger.LoggerModule;
 import com.life360.falx.dagger.UtilComponent;
 import com.life360.falx.model.FalxData;
+import com.life360.falx.model.NetworkActivity;
 import com.life360.falx.monitor.AppState;
 import com.life360.falx.monitor.AppStateListener;
 import com.life360.falx.monitor.AppStateMonitor;
 import com.life360.falx.monitor.Monitor;
 import com.life360.falx.monitor.NetworkMonitor;
+import com.life360.falx.network.FalxInterceptor;
 import com.life360.falx.util.Logger;
 
 import java.util.ArrayList;
@@ -26,7 +28,9 @@ import javax.inject.Inject;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.Observer;
 import io.reactivex.functions.Cancellable;
+import io.reactivex.subjects.PublishSubject;
 import io.realm.Realm;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
@@ -70,8 +74,9 @@ public class FalxApi {
         if ((monitorFlags & MONITOR_APP_STATE) == MONITOR_APP_STATE) {
             monitors.add(new AppStateMonitor(appStateObservable()));
         }
-        else if ((monitorFlags & MONITOR_NETWORK) == MONITOR_NETWORK) {
-            monitors.add(new NetworkMonitor());
+
+        if ((monitorFlags & MONITOR_NETWORK) == MONITOR_NETWORK) {
+            monitors.add(new NetworkMonitor(getNetworkActivityObservable()));
         }
         // todo: and so on
     }
@@ -96,7 +101,7 @@ public class FalxApi {
         return true;
     }
 
-    private static final String TAG = "FalxApi";
+    public static final String TAG = "FalxApi";
 
     private static volatile FalxApi falxApi = null;
 
@@ -111,6 +116,10 @@ public class FalxApi {
     private UtilComponent utilComponent;
 
     private ArrayList<Monitor> monitors = new ArrayList<>();
+
+    private FalxInterceptor falxInterceptor;
+    private PublishSubject<NetworkActivity> networkActivitySubject = PublishSubject.create();
+
 
     private FalxApi(@NonNull Context context) {
         // Create our UtilComponent module, since it will be only used by FalxApi
@@ -172,7 +181,22 @@ public class FalxApi {
         }
     }
 
-    public Observable<AppState> appStateObservable() {
+    /**
+     * Get a Interceptor that can be added to OkHttpClient.
+     *
+     * @return a instance of FalxInterceptor that will allow the network monitor to log data about network activity
+     */
+    public FalxInterceptor getInterceptor() {
+        if (falxInterceptor == null) {
+            falxInterceptor = new FalxInterceptor(getNetworkActivityObserver());
+        }
+
+        return falxInterceptor;
+    }
+
+
+    @VisibleForTesting
+    Observable<AppState> appStateObservable() {
 
         return Observable.create(new ObservableOnSubscribe<AppState>() {
             @Override
@@ -199,6 +223,14 @@ public class FalxApi {
                 });
             }
         });
+    }
+
+    private Observable<NetworkActivity> getNetworkActivityObservable() {
+        return networkActivitySubject;
+    }
+
+    private Observer<NetworkActivity> getNetworkActivityObserver() {
+        return networkActivitySubject;
     }
 
     public void testStoredData() {

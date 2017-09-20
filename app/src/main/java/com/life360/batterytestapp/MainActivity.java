@@ -2,6 +2,8 @@ package com.life360.batterytestapp;
 
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -9,11 +11,22 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.life360.batterytestapp.google.GeocodeResponse;
+import com.life360.batterytestapp.google.GooglePlatform;
 import com.life360.falx.FalxApi;
 import com.life360.falx.model.ExtraData;
 import com.life360.falx.model.FalxData;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Locale;
+
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
+import io.reactivex.subjects.PublishSubject;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class MainActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -65,5 +78,45 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         LatLng sydney = new LatLng(-34, 151);
         mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+
+        mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+            @Override
+            public void onMapLongClick(LatLng latLng) {
+
+                Log.d("rk-dbg", "Map long click rev-geocoding: " + latLng.toString());
+
+                // Try a reverse geocode
+                GooglePlatform.getInterface(MainActivity.this)
+                        .reverseGeocode(String.format(Locale.US, "%f,%f", latLng.latitude, latLng.longitude), Locale.getDefault().getLanguage())
+                        .enqueue(new Callback<GeocodeResponse>() {
+                            @Override
+                            public void onResponse(Call<GeocodeResponse> call, Response<GeocodeResponse> response) {
+                                if (response.isSuccessful()) {
+                                    String address = "No address";
+
+                                    GeocodeResponse geocodeResponse = response.body();
+                                    if (geocodeResponse.results.size() > 0) {
+                                        GeocodeResponse.Results results = geocodeResponse.results.get(0);
+                                        address = results.formattedAddress;
+                                    }
+
+                                    Log.d("rk-dbg", "Rev geocode response: " + address);
+                                    Toast.makeText(MainActivity.this, address, Toast.LENGTH_SHORT).show();
+                                } else {
+                                    try {
+                                        Log.e("rk-dbg", "Error in response: " + response.errorBody().string());
+                                    } catch (IOException e) {
+                                    }
+                                }
+                            }
+
+                            @Override
+                            public void onFailure(Call<GeocodeResponse> call, Throwable t) {
+                                Log.e("rk-dbg", "Call failure: " + t.toString());
+                            }
+                        });
+            }
+        });
+
     }
 }
