@@ -1,8 +1,6 @@
 package com.life360.falx.monitor_store;
 
 import io.reactivex.Observable;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.disposables.Disposables;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 import io.realm.Realm;
@@ -12,7 +10,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Created by Vikas on 9/19/17.
@@ -29,7 +26,7 @@ public class FalxEventStore implements FalxEventStorable {
     private Realm realm;
 
     public FalxEventStore(RealmStore store) {
-        this.realm = store.Realm();
+        this.realm = store.realmInstance();
     }
 
 

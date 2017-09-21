@@ -7,8 +7,8 @@ import com.life360.falx.dagger.DaggerUtilComponent;
 import com.life360.falx.dagger.DateTimeModule;
 import com.life360.falx.dagger.LoggerModule;
 import com.life360.falx.dagger.UtilComponent;
-import com.life360.falx.model.FalxData;
 import com.life360.falx.model.SessionData;
+import com.life360.falx.monitor_store.FalxMonitorEvent;
 import com.life360.falx.util.Clock;
 import com.life360.falx.util.Logger;
 
@@ -175,8 +175,10 @@ public class AppStateMonitor extends Monitor {
 
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     protected void saveToDataStore() {
-        FalxData falxData = new FalxData(lastSessionData.getName(), endTime, lastSessionData.getExtras());
-        falxData.save();
+//        FalxData falxData = new FalxData(lastSessionData.getName(), endTime, lastSessionData.getArgumentMap());
+//        falxData.save();
+
+        eventPublishSubject.onNext(new FalxMonitorEvent(lastSessionData.getName(), lastSessionData.getArgumentMap()));
     }
 
     @Override
