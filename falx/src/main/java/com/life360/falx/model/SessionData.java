@@ -1,9 +1,12 @@
 package com.life360.falx.model;
 
 import com.life360.falx.monitor.AppState;
+import com.life360.falx.monitor_store.Arguments;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by remon on 7/12/17.
@@ -26,9 +29,9 @@ public class SessionData {
         return endTime - startTime;
     }
 
-    public List<ExtraData> getExtras() {
-        List<ExtraData> extras = new ArrayList<>();
-        extras.add(new ExtraData(DURATION, Long.toString(getDuration())));
+    public Map<String, Double> getArgumentMap() {
+        Map<String, Double> extras = new HashMap<>();
+        extras.put(DURATION, new Double(getDuration()));
 
         return extras;
     }

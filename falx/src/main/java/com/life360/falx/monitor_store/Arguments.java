@@ -33,4 +33,12 @@ public class Arguments extends RealmObject {
     public void setValue(Double value) {
         this.value = value;
     }
+
+    @Override
+    public String toString() {
+        return "Arguments{" +
+                "key='" + key + '\'' +
+                ", value=" + value +
+                '}';
+    }
 }

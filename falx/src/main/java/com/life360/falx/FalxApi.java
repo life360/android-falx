@@ -17,6 +17,9 @@ import com.life360.falx.monitor.AppStateListener;
 import com.life360.falx.monitor.AppStateMonitor;
 import com.life360.falx.monitor.Monitor;
 import com.life360.falx.monitor.NetworkMonitor;
+import com.life360.falx.monitor_store.FalxEventStore;
+import com.life360.falx.monitor_store.FalxRealm;
+import com.life360.falx.monitor_store.RealmStore;
 import com.life360.falx.network.FalxInterceptor;
 import com.life360.falx.util.Logger;
 
@@ -79,6 +82,10 @@ public class FalxApi {
             monitors.add(new NetworkMonitor(getNetworkActivityObservable()));
         }
         // todo: and so on
+
+        for (Monitor monitor : monitors) {
+            eventStore.subscribeToEvents(monitor.getEventObservable());
+        }
     }
 
     /**
@@ -117,6 +124,8 @@ public class FalxApi {
 
     private ArrayList<Monitor> monitors = new ArrayList<>();
 
+    private FalxEventStore eventStore;
+
     private FalxInterceptor falxInterceptor;
     private PublishSubject<NetworkActivity> networkActivitySubject = PublishSubject.create();
 
@@ -153,6 +162,8 @@ public class FalxApi {
         appStateListeners = new ArrayList<>();
 
         Realm.init(context);
+
+        eventStore = new FalxEventStore(new FalxRealm(),context);
     }
 
     public void addAppStateListener(AppStateListener listener) {
@@ -234,14 +245,14 @@ public class FalxApi {
     }
 
     public void testStoredData() {
-        Realm realm = Realm.getDefaultInstance();
-        RealmQuery<FalxData> query = realm.where(FalxData.class);
-
-        RealmResults<FalxData> result = query.findAll();
-
-        logger.d(TAG, "Stored data: ");
-        for (FalxData data : result) {
-            logger.d(TAG, data.toString());
-        }
+//        realmInstance realm = realmInstance.getDefaultInstance();
+//        RealmQuery<FalxData> query = realm.where(FalxData.class);
+//
+//        RealmResults<FalxData> result = query.findAll();
+//
+//        logger.d(TAG, "Stored data: ");
+//        for (FalxData data : result) {
+//            logger.d(TAG, data.toString());
+//        }
     }
 }

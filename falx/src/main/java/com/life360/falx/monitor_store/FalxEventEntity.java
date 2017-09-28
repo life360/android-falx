@@ -1,8 +1,8 @@
 package com.life360.falx.monitor_store;
 
 
-
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 import io.realm.RealmList;
@@ -19,51 +19,41 @@ public class FalxEventEntity extends RealmObject {
     private boolean processedByAgreegated = false;
 
     public FalxEventEntity() {
-
-    }
-
-    public FalxEventEntity(String name) {
-        this.name = name;
         this.timestamp = new Date();
+        this.arguments = new RealmList<>();
     }
 
-    //TODO init this object when FalxMonitorEvent is passed as an argument
     public FalxEventEntity(FalxMonitorEvent event) {
         this.name = event.getName();
         this.timestamp = event.getTimestamp();
-        this.arguments = getRealmListFromMap(event.getArguments());
+        this.arguments = convertMapToRealmList(event.getArguments());
     }
 
-    private RealmList<Arguments> getRealmListFromMap(Map<String, Double> arguments){
+    private RealmList<Arguments> convertMapToRealmList(Map<String, Double> arguments) {
         RealmList<Arguments> realmList = new RealmList<>();
-        for( Map.Entry<String, Double> entry : arguments.entrySet()){
-            realmList.add(new Arguments(entry.getKey(),entry.getValue()));
+
+        for (Map.Entry<String, Double> entry : arguments.entrySet()) {
+            realmList.add(new Arguments(entry.getKey(), entry.getValue()));
         }
         return realmList;
+    }
+
+    public Map<String, Double> getArguments() {
+        HashMap<String, Double> argMap = new HashMap<>();
+
+        for (Arguments arg : arguments) {
+            argMap.put(arg.getKey(), arg.getValue());
+        }
+
+        return argMap;
     }
 
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public Date getTimestamp() {
         return timestamp;
-    }
-
-    public void setTimestamp(Date timestamp) {
-        this.timestamp = timestamp;
-    }
-
-    public RealmList<Arguments> getArguments() {
-        return arguments;
-    }
-
-    public void setArguments(RealmList<Arguments> arguments) {
-        this.arguments = arguments;
     }
 
     public boolean isProcessedByAgreegated() {
@@ -72,5 +62,15 @@ public class FalxEventEntity extends RealmObject {
 
     public void setProcessedByAgreegated(boolean processedByAgreegated) {
         this.processedByAgreegated = processedByAgreegated;
+    }
+
+    @Override
+    public String toString() {
+        return "FalxEventEntity{" +
+                "name='" + name + '\'' +
+                ", timestamp=" + timestamp +
+                ", arguments=" + arguments +
+                ", processedByAgreegated=" + processedByAgreegated +
+                '}';
     }
 }

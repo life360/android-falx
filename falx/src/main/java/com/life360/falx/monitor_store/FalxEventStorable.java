@@ -17,11 +17,11 @@ public interface FalxEventStorable {
 
     void deleteOldEvents();
 
-    List<AggregratedFalxEvent> aggregateEvents(String eventName);
+    List<AggregratedFalxMonitorEvent> aggregateEvents(String eventName);
 
-    List<AggregratedFalxEvent> aggregatedEvents(String eventName, boolean allowPartialDays);
+    List<AggregratedFalxMonitorEvent> aggregatedEvents(String eventName, boolean allowPartialDays);
 
-    List<AggregratedFalxEvent> allAggregatedEvents(boolean allowPartialDays);
+    List<AggregratedFalxMonitorEvent> allAggregatedEvents(boolean allowPartialDays);
 
     URI eventToJSONFile();
 

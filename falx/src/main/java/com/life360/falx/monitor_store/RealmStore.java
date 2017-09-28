@@ -7,5 +7,5 @@ import io.realm.Realm;
  */
 
 public interface RealmStore {
-    Realm Realm();
+    Realm realmInstance();
 }

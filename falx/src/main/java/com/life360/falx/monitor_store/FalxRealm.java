@@ -21,16 +21,15 @@ public class FalxRealm implements RealmStore {
     }
 
     @Override
-    public Realm Realm() {
+    public Realm realmInstance() {
         RealmConfiguration configuration = new RealmConfiguration.Builder()
                 .name(realmFileName)
                 .build();
-        return Realm().getInstance(configuration);
-
+        return Realm.getInstance(configuration);
     }
 
     public void clearStore() {
-        Realm realm = this.Realm();
+        Realm realm = this.realmInstance();
         realm.beginTransaction();
         realm.deleteAll();
         realm.commitTransaction();

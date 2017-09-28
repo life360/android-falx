@@ -31,7 +31,7 @@ public class FalxData extends RealmObject {
     }
 
     /**
-     * Saves the object to a Realm data store.
+     * Saves the object to a realmInstance data store.
      */
     public void save() {
         Realm realm = Realm.getDefaultInstance();
