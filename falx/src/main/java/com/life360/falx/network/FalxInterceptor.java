@@ -15,6 +15,7 @@ import java.io.IOException;
 import javax.inject.Inject;
 
 import io.reactivex.Observer;
+import okhttp3.HttpUrl;
 import okhttp3.Interceptor;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -27,7 +28,7 @@ import okhttp3.Response;
  * Usage:
  * <pre>
  *   OkHttpClient client = new OkHttpClient.Builder()
- *       .addInterceptor(new FalxInterceptor())
+ *       .addNetworkInterceptor(new FalxInterceptor())
  *       .build();
  * </pre>
  */
@@ -64,15 +65,22 @@ public class FalxInterceptor implements Interceptor {
         Response response = chain.proceed(request);
         long t2 = System.nanoTime();
 
+        final HttpUrl httpUrl = response.request().url();
         logger.i(FalxApi.TAG, String.format("Received response for %s in %.1fms%n%s",
-                response.request().url(), (t2 - t1) / 1e6d, response.headers()));
+                httpUrl, (t2 - t1) / 1e6d, response.headers()));
 
+        // Note: Do not consume the response body here.
 
-        final int bytesReceived = response.body().bytes().length;
+        int bytesReceived = 0;
+        String contentLength = response.header("content-length");
+        if (contentLength != null) {
+            bytesReceived = Integer.valueOf(contentLength);
+        }
+
         logger.i(FalxApi.TAG, "Response length: (bytes) = " + bytesReceived);
 
         // Publish result to the Observable
-        networkActivityObserver.onNext(new NetworkActivity(1, bytesReceived));
+        networkActivityObserver.onNext(new NetworkActivity(1, bytesReceived, httpUrl.toString()));
 
         return response;
     }

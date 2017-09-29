@@ -103,7 +103,7 @@ public class GooglePlatform {
 
         final OkHttpClient.Builder okHttpClientBuilder = new OkHttpClient.Builder();
         okHttpClientBuilder.addInterceptor(THROTTLING_INTERCEPTOR);
-        okHttpClientBuilder.addInterceptor(FalxApi.getInstance(context).getInterceptor());      // remon.add
+        okHttpClientBuilder.addNetworkInterceptor(FalxApi.getInstance(context).getInterceptor());      // remon.add
 
         okHttpClientBuilder.networkInterceptors().add(REWRITE_CACHE_CONTROL_INTERCEPTOR);
         okHttpClientBuilder.cache(responseCache);
