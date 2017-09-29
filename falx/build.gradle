@@ -9,7 +9,7 @@ apply plugin: 'realm-android'
 
 android {
     compileSdkVersion 26
-    buildToolsVersion "26.0.0"
+    buildToolsVersion "26.0.2"
 
     // Sets the "debug" build variant as the default variant
     // of the library that Gradle should publish.
@@ -37,7 +37,7 @@ dependencies {
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    compile 'com.android.support:appcompat-v7:26.+'
+    compile "com.android.support:appcompat-v7:26.0.2"
     testCompile 'junit:junit:4.12'
 
     testCompile 'org.mockito:mockito-core:2.+'
