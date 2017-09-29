@@ -2,6 +2,8 @@ package com.life360.falx.monitor_store;
 
 
 
+import com.life360.falx.model.FalxMonitorEvent;
+
 import java.net.URI;
 import java.util.List;
 
@@ -17,11 +19,11 @@ public interface FalxEventStorable {
 
     void deleteOldEvents();
 
-    List<AggregratedFalxMonitorEvent> aggregateEvents(String eventName);
+    List<AggregatedFalxMonitorEvent> aggregateEvents(String eventName);
 
-    List<AggregratedFalxMonitorEvent> aggregatedEvents(String eventName, boolean allowPartialDays);
+    List<AggregatedFalxMonitorEvent> aggregatedEvents(String eventName, boolean allowPartialDays);
 
-    List<AggregratedFalxMonitorEvent> allAggregatedEvents(boolean allowPartialDays);
+    List<AggregatedFalxMonitorEvent> allAggregatedEvents(boolean allowPartialDays);
 
     URI eventToJSONFile();
 

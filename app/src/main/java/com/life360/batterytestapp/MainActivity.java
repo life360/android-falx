@@ -14,16 +14,10 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.life360.batterytestapp.google.GeocodeResponse;
 import com.life360.batterytestapp.google.GooglePlatform;
 import com.life360.falx.FalxApi;
-import com.life360.falx.model.ExtraData;
-import com.life360.falx.model.FalxData;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Locale;
 
-import io.reactivex.functions.Consumer;
-import io.reactivex.schedulers.Schedulers;
-import io.reactivex.subjects.PublishSubject;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;

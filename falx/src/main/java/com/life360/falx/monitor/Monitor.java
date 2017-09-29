@@ -1,6 +1,6 @@
 package com.life360.falx.monitor;
 
-import com.life360.falx.monitor_store.FalxMonitorEvent;
+import com.life360.falx.model.FalxMonitorEvent;
 
 import io.reactivex.Observable;
 import io.reactivex.subjects.PublishSubject;

@@ -1,4 +1,4 @@
-package com.life360.falx.monitor_store;
+package com.life360.falx.model;
 
 
 import java.util.Date;
@@ -15,8 +15,8 @@ import io.realm.RealmObject;
 public class FalxEventEntity extends RealmObject {
     private String name;
     private Date timestamp;
-    private RealmList<Arguments> arguments;
-    private boolean processedByAgreegated = false;
+    private RealmList<EventArgument> arguments;
+    private boolean processedForAggregation = false;
 
     public FalxEventEntity() {
         this.timestamp = new Date();
@@ -29,11 +29,11 @@ public class FalxEventEntity extends RealmObject {
         this.arguments = convertMapToRealmList(event.getArguments());
     }
 
-    private RealmList<Arguments> convertMapToRealmList(Map<String, Double> arguments) {
-        RealmList<Arguments> realmList = new RealmList<>();
+    private RealmList<EventArgument> convertMapToRealmList(Map<String, Double> arguments) {
+        RealmList<EventArgument> realmList = new RealmList<>();
 
         for (Map.Entry<String, Double> entry : arguments.entrySet()) {
-            realmList.add(new Arguments(entry.getKey(), entry.getValue()));
+            realmList.add(new EventArgument(entry.getKey(), entry.getValue()));
         }
         return realmList;
     }
@@ -41,7 +41,7 @@ public class FalxEventEntity extends RealmObject {
     public Map<String, Double> getArguments() {
         HashMap<String, Double> argMap = new HashMap<>();
 
-        for (Arguments arg : arguments) {
+        for (EventArgument arg : arguments) {
             argMap.put(arg.getKey(), arg.getValue());
         }
 
@@ -56,12 +56,12 @@ public class FalxEventEntity extends RealmObject {
         return timestamp;
     }
 
-    public boolean isProcessedByAgreegated() {
-        return processedByAgreegated;
+    public boolean isProcessedForAggregation() {
+        return processedForAggregation;
     }
 
-    public void setProcessedByAgreegated(boolean processedByAgreegated) {
-        this.processedByAgreegated = processedByAgreegated;
+    public void setProcessedByAgregated(boolean processedByAgreegated) {
+        this.processedForAggregation = processedByAgreegated;
     }
 
     @Override
@@ -70,7 +70,7 @@ public class FalxEventEntity extends RealmObject {
                 "name='" + name + '\'' +
                 ", timestamp=" + timestamp +
                 ", arguments=" + arguments +
-                ", processedByAgreegated=" + processedByAgreegated +
+                ", processedForAggregation=" + processedForAggregation +
                 '}';
     }
 }

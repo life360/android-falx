@@ -2,8 +2,10 @@ package com.life360.falx.monitor_store;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.nfc.Tag;
 import android.util.Log;
+
+import com.life360.falx.model.FalxEventEntity;
+import com.life360.falx.model.FalxMonitorEvent;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -14,15 +16,12 @@ import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 import io.realm.Realm;
 import io.realm.RealmList;
-import io.realm.RealmQuery;
 import io.realm.RealmResults;
 import io.realm.Sort;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -106,12 +105,12 @@ public class FalxEventStore implements FalxEventStorable {
     }
 
     @Override
-    public List<AggregratedFalxMonitorEvent> aggregateEvents(String eventName) {
+    public List<AggregatedFalxMonitorEvent> aggregateEvents(String eventName) {
         return aggregatedEvents(eventName, true);
     }
 
     @Override
-    public List<AggregratedFalxMonitorEvent> aggregatedEvents(String eventName, boolean allowPartialDays) {
+    public List<AggregatedFalxMonitorEvent> aggregatedEvents(String eventName, boolean allowPartialDays) {
 
         Realm realm = realmStore.realmInstance();
 
@@ -127,7 +126,7 @@ public class FalxEventStore implements FalxEventStorable {
             return null;
         }
 
-        List<AggregratedFalxMonitorEvent> aggregratedFalxEvents = new ArrayList<>();
+        List<AggregatedFalxMonitorEvent> aggregatedFalxEvents = new ArrayList<>();
 
         RealmList<FalxEventEntity> processedEvents = new RealmList<>();
 
@@ -155,7 +154,7 @@ public class FalxEventStore implements FalxEventStorable {
                         beginWindowDate,
                         processedEvents,
                         aggregatedArguments,
-                        aggregratedFalxEvents);
+                        aggregatedFalxEvents);
 
                 //for next event
                 processedEvents.clear();
@@ -175,10 +174,10 @@ public class FalxEventStore implements FalxEventStorable {
                     beginWindowDate,
                     processedEvents,
                     aggregatedArguments,
-                    aggregratedFalxEvents);
+                    aggregatedFalxEvents);
         }
-        if (aggregratedFalxEvents.size() > 0) {
-            return aggregratedFalxEvents;
+        if (aggregatedFalxEvents.size() > 0) {
+            return aggregatedFalxEvents;
         } else {
             return null;
         }
@@ -204,20 +203,20 @@ public class FalxEventStore implements FalxEventStorable {
 
     }
 
-    private AggregratedFalxMonitorEvent createAggregatedEvents(final RealmList<FalxEventEntity> events,
-                                                               Map<String, Double> aggregatedArguments,
-                                                               Date timestamp) {
+    private AggregatedFalxMonitorEvent createAggregatedEvents(final RealmList<FalxEventEntity> events,
+                                                              Map<String, Double> aggregatedArguments,
+                                                              Date timestamp) {
         if (events == null || events.size() == 0) {
             return null;
         }
 
-        AggregratedFalxMonitorEvent aggregatedEvent = new AggregratedFalxMonitorEvent(
+        AggregatedFalxMonitorEvent aggregatedEvent = new AggregatedFalxMonitorEvent(
                 events.first().getName(),
                 events.size(),
                 timestamp);
 
         for (Map.Entry<String, Double> entry : aggregatedArguments.entrySet()) {
-            aggregatedEvent.getArguments().put(entry.getKey(), entry.getValue());
+            aggregatedEvent.putArgument(entry.getKey(), entry.getValue());
         }
 
 
@@ -227,7 +226,7 @@ public class FalxEventStore implements FalxEventStorable {
             @Override
             public void execute(Realm realm) {
                 for (FalxEventEntity event : events) {
-                    event.setProcessedByAgreegated(true);
+                    event.setProcessedByAgregated(true);
                 }
             }
         });
@@ -239,7 +238,7 @@ public class FalxEventStore implements FalxEventStorable {
     private void appendEvent(Date beginWindowDate,
                              final RealmList<FalxEventEntity> processedEvents,
                              Map<String, Double> aggregatedArguments,
-                             List<AggregratedFalxMonitorEvent> aggregratedFalxEvents) {
+                             List<AggregatedFalxMonitorEvent> aggregatedFalxEvents) {
 
         Calendar cal = Calendar.getInstance();
         cal.setTime(beginWindowDate);
@@ -249,23 +248,23 @@ public class FalxEventStore implements FalxEventStorable {
 
         Date startOfDay = cal.getTime();
 
-        AggregratedFalxMonitorEvent aggregratedFalxMonitorEvent =
+        AggregatedFalxMonitorEvent aggregatedFalxMonitorEvent =
                 createAggregatedEvents(processedEvents, aggregatedArguments, startOfDay);
 
-        if (aggregratedFalxMonitorEvent != null) {
-            aggregratedFalxEvents.add(aggregratedFalxMonitorEvent);
+        if (aggregatedFalxMonitorEvent != null) {
+            aggregatedFalxEvents.add(aggregatedFalxMonitorEvent);
         }
     }
 
     @Override
-    public List<AggregratedFalxMonitorEvent> allAggregatedEvents(boolean allowPartialDays) {
+    public List<AggregatedFalxMonitorEvent> allAggregatedEvents(boolean allowPartialDays) {
         Realm realm = realmStore.realmInstance();
 
         RealmResults<FalxEventEntity> allDistinctNameEvents = realm.where(FalxEventEntity.class).distinct("name");
 
-        List<AggregratedFalxMonitorEvent> allEvents = new ArrayList<>();
+        List<AggregatedFalxMonitorEvent> allEvents = new ArrayList<>();
         for (int i = 0; i < allDistinctNameEvents.size(); i++) {
-            List<AggregratedFalxMonitorEvent> events = this.aggregatedEvents(
+            List<AggregatedFalxMonitorEvent> events = this.aggregatedEvents(
                     allDistinctNameEvents.get(i).getName(),
                     allowPartialDays);
             allEvents.addAll(events);
@@ -363,6 +362,7 @@ public class FalxEventStore implements FalxEventStorable {
 
     }
 
+    // ** Test function
     public void testFunction() {
 //        deleteOldEvents();
 //        Log.d(TAG, "deleted old events");

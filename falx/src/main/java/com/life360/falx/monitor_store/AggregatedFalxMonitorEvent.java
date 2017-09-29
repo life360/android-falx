@@ -9,7 +9,7 @@ import java.util.Map;
  * Created by Vikas on 9/19/17.
  */
 
-public class AggregratedFalxMonitorEvent {
+public class AggregatedFalxMonitorEvent {
 
     public static final String DURATION = "duration";
     public static final String COUNT = "count";
@@ -17,12 +17,12 @@ public class AggregratedFalxMonitorEvent {
     private String name;
     private Map<String, Double> arguments = new HashMap<>();
 
-    public AggregratedFalxMonitorEvent(String name, int count, Date timestamp) {
+    public AggregatedFalxMonitorEvent(String name, int count, Date timestamp) {
         this.name = name;
-        this.arguments.put(AggregratedFalxMonitorEvent.COUNT, new Double(count));
+        this.arguments.put(AggregatedFalxMonitorEvent.COUNT, new Double(count));
         Calendar cal = Calendar.getInstance();
         cal.setTime(timestamp);
-        this.arguments.put(AggregratedFalxMonitorEvent.TIMESTAMP, new Double(cal.getTimeInMillis()));
+        this.arguments.put(AggregatedFalxMonitorEvent.TIMESTAMP, new Double(cal.getTimeInMillis()));
     }
 
     public String getName() {
@@ -30,33 +30,33 @@ public class AggregratedFalxMonitorEvent {
     }
 
     public Double getDuration() {
-        if (this.arguments.containsKey(AggregratedFalxMonitorEvent.DURATION)) {
-            return this.arguments.get(AggregratedFalxMonitorEvent.DURATION);
+        if (this.arguments.containsKey(AggregatedFalxMonitorEvent.DURATION)) {
+            return this.arguments.get(AggregatedFalxMonitorEvent.DURATION);
         }
         return 0.0;
     }
 
     public Double getCount() {
-        if (this.arguments.containsKey(AggregratedFalxMonitorEvent.COUNT)) {
-            return this.arguments.get(AggregratedFalxMonitorEvent.COUNT);
+        if (this.arguments.containsKey(AggregatedFalxMonitorEvent.COUNT)) {
+            return this.arguments.get(AggregatedFalxMonitorEvent.COUNT);
         }
         return 0.0;
     }
 
     public Double getTimestamp() {
-        if (this.arguments.containsKey(AggregratedFalxMonitorEvent.TIMESTAMP)) {
-            return this.arguments.get(AggregratedFalxMonitorEvent.TIMESTAMP);
+        if (this.arguments.containsKey(AggregatedFalxMonitorEvent.TIMESTAMP)) {
+            return this.arguments.get(AggregatedFalxMonitorEvent.TIMESTAMP);
         }
         return 0.0;
     }
 
-    public Map<String,Double> getArguments(){
-        return  arguments;
+    public void putArgument(String key, Double value) {
+        arguments.put(key, value);
     }
 
     @Override
     public String toString() {
-        return "AggregratedFalxMonitorEvent{" +
+        return "AggregatedFalxMonitorEvent{" +
                 "name='" + name + '\'' +
                 ", arguments=" + arguments +
                 '}';

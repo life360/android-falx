@@ -1,11 +1,8 @@
 package com.life360.falx.model;
 
 import com.life360.falx.monitor.AppState;
-import com.life360.falx.monitor_store.Arguments;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**

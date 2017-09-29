@@ -6,8 +6,8 @@ import com.life360.falx.dagger.DaggerUtilComponent;
 import com.life360.falx.dagger.DateTimeModule;
 import com.life360.falx.dagger.LoggerModule;
 import com.life360.falx.dagger.UtilComponent;
+import com.life360.falx.model.FalxMonitorEvent;
 import com.life360.falx.model.NetworkActivity;
-import com.life360.falx.monitor_store.FalxMonitorEvent;
 import com.life360.falx.util.Clock;
 import com.life360.falx.util.Logger;
 

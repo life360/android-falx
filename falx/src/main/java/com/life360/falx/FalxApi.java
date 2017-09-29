@@ -10,7 +10,6 @@ import com.life360.falx.dagger.DaggerUtilComponent;
 import com.life360.falx.dagger.DateTimeModule;
 import com.life360.falx.dagger.LoggerModule;
 import com.life360.falx.dagger.UtilComponent;
-import com.life360.falx.model.FalxData;
 import com.life360.falx.model.NetworkActivity;
 import com.life360.falx.monitor.AppState;
 import com.life360.falx.monitor.AppStateListener;
@@ -19,7 +18,6 @@ import com.life360.falx.monitor.Monitor;
 import com.life360.falx.monitor.NetworkMonitor;
 import com.life360.falx.monitor_store.FalxEventStore;
 import com.life360.falx.monitor_store.FalxRealm;
-import com.life360.falx.monitor_store.RealmStore;
 import com.life360.falx.network.FalxInterceptor;
 import com.life360.falx.util.Logger;
 
@@ -35,8 +33,6 @@ import io.reactivex.Observer;
 import io.reactivex.functions.Cancellable;
 import io.reactivex.subjects.PublishSubject;
 import io.realm.Realm;
-import io.realm.RealmQuery;
-import io.realm.RealmResults;
 
 /**
  * Created by remon on 6/27/17.
@@ -108,6 +104,7 @@ public class FalxApi {
         return true;
     }
 
+
     public static final String TAG = "FalxApi";
 
     private static volatile FalxApi falxApi = null;
@@ -138,6 +135,7 @@ public class FalxApi {
                 .loggerModule(new LoggerModule())
                 .build();
 
+        Realm.init(context);
         init(context, utilComponent);
     }
 
@@ -149,6 +147,8 @@ public class FalxApi {
      */
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     FalxApi(@NonNull Context context, @NonNull UtilComponent utilComponent) {
+
+        // Note: Call to Realm.init is omitted as we should not use Realm in unit tests.
         init(context, utilComponent);
     }
 
@@ -161,9 +161,7 @@ public class FalxApi {
 
         appStateListeners = new ArrayList<>();
 
-        Realm.init(context);
-
-        eventStore = new FalxEventStore(new FalxRealm(),context);
+        eventStore = new FalxEventStore(new FalxRealm(), context);
     }
 
     public void addAppStateListener(AppStateListener listener) {
@@ -244,6 +242,7 @@ public class FalxApi {
         return networkActivitySubject;
     }
 
+    // ** Test function
     public void testStoredData() {
 //        realmInstance realm = realmInstance.getDefaultInstance();
 //        RealmQuery<FalxData> query = realm.where(FalxData.class);

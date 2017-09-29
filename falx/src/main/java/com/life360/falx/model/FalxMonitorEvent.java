@@ -1,4 +1,4 @@
-package com.life360.falx.monitor_store;
+package com.life360.falx.model;
 
 import java.util.Date;
 import java.util.Map;
@@ -24,23 +24,11 @@ public class FalxMonitorEvent {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public Date getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(Date timestamp) {
-        this.timestamp = timestamp;
-    }
-
     public Map<String, Double> getArguments() {
         return arguments;
-    }
-
-    public void setArguments(Map<String, Double> arguments) {
-        this.arguments = arguments;
     }
 }

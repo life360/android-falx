@@ -16,10 +16,6 @@ public class FalxRealm implements RealmStore {
         this.realmFileName = DEFAULT_REAL_FILE_NAME;
     }
 
-    public FalxRealm(String realmFileName) {
-        this.realmFileName = realmFileName;
-    }
-
     @Override
     public Realm realmInstance() {
         RealmConfiguration configuration = new RealmConfiguration.Builder()
@@ -34,5 +30,4 @@ public class FalxRealm implements RealmStore {
         realm.deleteAll();
         realm.commitTransaction();
     }
-
 }
