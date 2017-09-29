@@ -16,6 +16,7 @@ import com.life360.falx.monitor.AppStateListener;
 import com.life360.falx.monitor.AppStateMonitor;
 import com.life360.falx.monitor.Monitor;
 import com.life360.falx.monitor.NetworkMonitor;
+import com.life360.falx.monitor_store.AggregatedFalxMonitorEvent;
 import com.life360.falx.monitor_store.FalxEventStore;
 import com.life360.falx.monitor_store.FalxRealm;
 import com.life360.falx.network.FalxInterceptor;
@@ -63,6 +64,7 @@ public class FalxApi {
     /**
      * Add 1 or more Monitors using a integer to specify which monitors to add.
      * The monitor flags are specified by integer constants MONITOR_*
+     *
      * @param monitorFlags
      */
     public void addMonitors(int monitorFlags) {
@@ -86,6 +88,7 @@ public class FalxApi {
 
     /**
      * Marks start of a session, call when a Activity comes to the foreground (Activity.onStart)
+     *
      * @param activity
      * @return
      */
@@ -96,6 +99,7 @@ public class FalxApi {
 
     /**
      * * Marks start of a session, call when a Activity is removed from the foreground (Activity.onStop)
+     *
      * @param activity
      * @return
      */
@@ -110,7 +114,8 @@ public class FalxApi {
     private static volatile FalxApi falxApi = null;
 
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    @Inject Logger logger;
+    @Inject
+    Logger logger;
 
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     List<AppStateListener> appStateListeners;
@@ -142,6 +147,7 @@ public class FalxApi {
     /**
      * Test code can pass in a TestUtilsComponent to this special constructor to inject
      * fake objects instead of what is provided by UtilComponent
+     *
      * @param context
      * @param utilComponent
      */
@@ -226,7 +232,8 @@ public class FalxApi {
                 addAppStateListener(appStateListener);
 
                 appStateEmitter.setCancellable(new Cancellable() {
-                    @Override public void cancel() throws Exception {
+                    @Override
+                    public void cancel() throws Exception {
                         removeAppStateListener(appStateListener);
                     }
                 });
@@ -240,6 +247,46 @@ public class FalxApi {
 
     private Observer<NetworkActivity> getNetworkActivityObserver() {
         return networkActivitySubject;
+    }
+
+    /**
+     * get aggregated events for the provided event
+     *
+     * @param eventName name of event
+     * @return list of aggregated Falx monitor events
+     */
+    public List<AggregatedFalxMonitorEvent> aggregateEvents(String eventName) {
+        if (eventStore != null) {
+            return eventStore.aggregateEvents(eventName);
+        }
+        return null;
+    }
+
+    /**
+     * get aggregated events for the provided event, also partial day option is available
+     *
+     * @param eventName name of event
+     * @param allowPartialDays if true partial day's data also included
+     * @return list of aggregated Falx monitor events
+     */
+    public List<AggregatedFalxMonitorEvent> aggregatedEvents(String eventName, boolean allowPartialDays) {
+        if (eventStore != null) {
+            return eventStore.aggregatedEvents(eventName, allowPartialDays);
+        }
+        return null;
+    }
+
+    /**
+     * get all aggregated events
+     *
+     * @param allowPartialDays if true partial day's data also included
+     * @return list of aggregated Falx monitor events
+     */
+    public List<AggregatedFalxMonitorEvent> allAggregatedEvents(boolean allowPartialDays) {
+        if (eventStore != null) {
+            return eventStore.allAggregatedEvents(allowPartialDays);
+        }
+        return null;
     }
 
     // ** Test function
