@@ -59,15 +59,15 @@ public class FalxInterceptor implements Interceptor {
         Request request = chain.request();
         long t1 = System.nanoTime();
 
-        logger.i(FalxApi.TAG, String.format("Sending request %s on %s%n%s",
-                request.url(), chain.connection(), request.headers()));
+        logger.i(Logger.TAG, String.format("Sending request %s on %s%n",
+                request.url(), chain.connection()));
 
         Response response = chain.proceed(request);
         long t2 = System.nanoTime();
 
         final HttpUrl httpUrl = response.request().url();
-        logger.i(FalxApi.TAG, String.format("Received response for %s in %.1fms%n%s",
-                httpUrl, (t2 - t1) / 1e6d, response.headers()));
+        logger.i(Logger.TAG, String.format("Received response for %s in %.1fms%n",
+                httpUrl, (t2 - t1) / 1e6d));
 
         // Note: Do not consume the response body here.
 
@@ -77,7 +77,7 @@ public class FalxInterceptor implements Interceptor {
             bytesReceived = Integer.valueOf(contentLength);
         }
 
-        logger.i(FalxApi.TAG, "Response length: (bytes) = " + bytesReceived);
+        logger.i(Logger.TAG, "Response length: (bytes) = " + bytesReceived);
 
         // Publish result to the Observable
         networkActivityObserver.onNext(new NetworkActivity(1, bytesReceived, httpUrl.toString()));

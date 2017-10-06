@@ -1,8 +1,16 @@
 package com.life360.batterytestapp;
 
+import android.annotation.TargetApi;
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
+import android.content.ComponentName;
+import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.text.format.DateUtils;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -16,16 +24,20 @@ import com.life360.batterytestapp.google.GooglePlatform;
 import com.life360.falx.FalxApi;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Locale;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+import static android.app.job.JobInfo.NETWORK_TYPE_ANY;
+
 public class MainActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
 
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,6 +48,39 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
 
         FalxApi.getInstance(this).addMonitors(FalxApi.MONITOR_APP_STATE | FalxApi.MONITOR_NETWORK);
+
+        findViewById(R.id.trigger_stats).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Log.d("rk-dbg", "Test aggregate data query...");
+
+                BatteryStatReporter.sendLogs(MainActivity.this);
+            }
+        });
+
+        JobScheduler jobScheduler = (JobScheduler) this.getSystemService(Context.JOB_SCHEDULER_SERVICE);
+
+        List<JobInfo> pendingJobs = jobScheduler.getAllPendingJobs();
+
+        boolean foundBatteryJob = false;
+        for (JobInfo info : pendingJobs) {
+            if (ScheduledJobService.JOB_ID_BATTERY_STATS == info.getId()) {
+                foundBatteryJob = true;
+                break;
+            }
+        }
+
+        if (!foundBatteryJob) {
+            JobInfo.Builder builder = new JobInfo.Builder(ScheduledJobService.JOB_ID_BATTERY_STATS, new ComponentName(this, ScheduledJobService.class));
+            builder.setPeriodic(1 * DateUtils.MINUTE_IN_MILLIS);
+            builder.setRequiredNetworkType(NETWORK_TYPE_ANY);
+            JobInfo jobInfo = builder.build();
+
+            int schRes = jobScheduler.schedule(jobInfo);
+            Log.d("rk-dbg", "Job scheduling result: " + schRes);
+        } else {
+            Log.d("rk-dbg", "Battery stat reporter job already scheduled");
+        }
     }
 
     @Override

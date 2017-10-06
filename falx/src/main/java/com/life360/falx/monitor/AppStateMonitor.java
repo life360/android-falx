@@ -157,7 +157,7 @@ public class AppStateMonitor extends Monitor {
             endTime = startTime;
         }
 
-        logger.d(TAG, "Session completed, duration (seconds): " + ((endTime - startTime) / 1000));
+        logger.d(Logger.TAG, "Session completed, duration (seconds): " + ((endTime - startTime) / 1000));
 
         lastSessionData = new SessionData(AppState.FOREGROUND, startTime, endTime);
 

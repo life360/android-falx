@@ -13,9 +13,16 @@ import io.realm.RealmObject;
  */
 
 public class FalxEventEntity extends RealmObject {
+    public static final String KEY_NAME = "name";
     private String name;
+
+    public static final String KEY_TIMESTAMP = "timestamp";
     private Date timestamp;
+
+    public static final String KEY_ARGUMENTS = "arguments";
     private RealmList<EventArgument> arguments;
+
+    public static final String KEY_PROCESSED_FOR_AGGREGATION = "processedForAggregation";
     private boolean processedForAggregation = false;
 
     public FalxEventEntity() {
@@ -60,8 +67,8 @@ public class FalxEventEntity extends RealmObject {
         return processedForAggregation;
     }
 
-    public void setProcessedByAgregated(boolean processedByAgreegated) {
-        this.processedForAggregation = processedByAgreegated;
+    public void setProcessedForAggregation(boolean processedForAggregation) {
+        this.processedForAggregation = processedForAggregation;
     }
 
     @Override

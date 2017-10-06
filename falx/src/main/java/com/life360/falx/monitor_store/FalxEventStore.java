@@ -11,14 +11,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import io.reactivex.Observable;
-import io.reactivex.functions.Consumer;
-import io.reactivex.schedulers.Schedulers;
-import io.realm.Realm;
-import io.realm.RealmList;
-import io.realm.RealmResults;
-import io.realm.Sort;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -29,6 +21,14 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import io.reactivex.Observable;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
+import io.realm.Realm;
+import io.realm.RealmList;
+import io.realm.RealmResults;
+import io.realm.Sort;
 
 /**
  * Created by Vikas on 9/19/17.
@@ -93,7 +93,7 @@ public class FalxEventStore implements FalxEventStorable {
         Date beginingOfSixDaysAgo = sixDaysAgoCal.getTime();
         final RealmResults<FalxEventEntity> olderEvents = realm
                 .where(FalxEventEntity.class)
-                .lessThan("timestamp", beginingOfSixDaysAgo)
+                .lessThan(FalxEventEntity.KEY_TIMESTAMP, beginingOfSixDaysAgo)
                 .findAll();
 
         realm.executeTransaction(new Realm.Transaction() {
@@ -109,24 +109,32 @@ public class FalxEventStore implements FalxEventStorable {
         return aggregatedEvents(eventName, true);
     }
 
+    /**
+     * Get aggregated argument values for a list of events.
+     *
+     * @param eventName
+     * @param allowPartialDays
+     * @return a list of events, can be empty if no stored events found
+     */
     @Override
     public List<AggregatedFalxMonitorEvent> aggregatedEvents(String eventName, boolean allowPartialDays) {
+
+        List<AggregatedFalxMonitorEvent> aggregatedFalxEvents = new ArrayList<>();
 
         Realm realm = realmStore.realmInstance();
 
         RealmResults<FalxEventEntity> events = realm.where(FalxEventEntity.class)
-                .equalTo("name", eventName)
-                .equalTo("processedByAgreegated", false)
-                .findAllSorted("timestamp", Sort.ASCENDING);
+                .equalTo(FalxEventEntity.KEY_NAME, eventName)
+                .equalTo(FalxEventEntity.KEY_PROCESSED_FOR_AGGREGATION, false)
+                .findAllSorted(FalxEventEntity.KEY_TIMESTAMP, Sort.ASCENDING);
 
 
         int count = events.size();
 
         if (count <= 0) {
-            return null;
+            return aggregatedFalxEvents;
         }
 
-        List<AggregatedFalxMonitorEvent> aggregatedFalxEvents = new ArrayList<>();
 
         RealmList<FalxEventEntity> processedEvents = new RealmList<>();
 
@@ -176,12 +184,8 @@ public class FalxEventStore implements FalxEventStorable {
                     aggregatedArguments,
                     aggregatedFalxEvents);
         }
-        if (aggregatedFalxEvents.size() > 0) {
-            return aggregatedFalxEvents;
-        } else {
-            return null;
-        }
 
+        return aggregatedFalxEvents;
     }
 
     private void aggregateCurrentEvent(FalxEventEntity currentEntity,
@@ -226,7 +230,7 @@ public class FalxEventStore implements FalxEventStorable {
             @Override
             public void execute(Realm realm) {
                 for (FalxEventEntity event : events) {
-                    event.setProcessedByAgregated(true);
+                    event.setProcessedForAggregation(true);
                 }
             }
         });
@@ -260,7 +264,7 @@ public class FalxEventStore implements FalxEventStorable {
     public List<AggregatedFalxMonitorEvent> allAggregatedEvents(boolean allowPartialDays) {
         Realm realm = realmStore.realmInstance();
 
-        RealmResults<FalxEventEntity> allDistinctNameEvents = realm.where(FalxEventEntity.class).distinct("name");
+        RealmResults<FalxEventEntity> allDistinctNameEvents = realm.where(FalxEventEntity.class).distinct(FalxEventEntity.KEY_NAME);
 
         List<AggregatedFalxMonitorEvent> allEvents = new ArrayList<>();
         for (int i = 0; i < allDistinctNameEvents.size(); i++) {
@@ -292,7 +296,7 @@ public class FalxEventStore implements FalxEventStorable {
         Realm realm = realmStore.realmInstance();
 
         RealmResults<FalxEventEntity> allRealmEvents = realm.where(FalxEventEntity.class)
-                .findAllSorted("timestamp", Sort.ASCENDING);
+                .findAllSorted(FalxEventEntity.KEY_TIMESTAMP, Sort.ASCENDING);
 
         if (allRealmEvents.size() <= 0) {
             return null;
@@ -303,11 +307,11 @@ public class FalxEventStore implements FalxEventStorable {
         for (FalxEventEntity falxEventEntity : allRealmEvents) {
             JSONObject jsonObject = new JSONObject();
             try {
-                jsonObject.put("name", falxEventEntity.getName());
+                jsonObject.put(FalxEventEntity.KEY_NAME, falxEventEntity.getName());
 
                 Calendar cal = Calendar.getInstance();
                 cal.setTime(falxEventEntity.getTimestamp());
-                jsonObject.put("timestamp", Long.toString(cal.getTimeInMillis()));
+                jsonObject.put(FalxEventEntity.KEY_TIMESTAMP, Long.toString(cal.getTimeInMillis()));
 
                 for (Map.Entry<String, Double> entry : falxEventEntity.getArguments().entrySet()) {
                     jsonObject.put(entry.getKey(), Double.toString(entry.getValue()));

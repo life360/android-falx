@@ -67,7 +67,7 @@ public class NetworkMonitor extends Monitor {
 
                     @Override
                     public void accept(NetworkActivity networkActivity) throws Exception {
-                        logger.d(TAG, "accept: NetworkActivity: " + networkActivity.toString());
+                        logger.d(Logger.TAG, "NetworkActivity: " + networkActivity.toString());
 
                         saveToDataStore(networkActivity);
                     }

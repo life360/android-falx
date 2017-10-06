@@ -56,11 +56,6 @@ public class FalxApi {
         return falxApi;
     }
 
-    public static void init(@NonNull final Context context) {
-        Log.d(TAG, "init Falx");
-        getInstance(context);
-    }
-
     /**
      * Add 1 or more Monitors using a integer to specify which monitors to add.
      * The monitor flags are specified by integer constants MONITOR_*
@@ -108,8 +103,6 @@ public class FalxApi {
         return true;
     }
 
-
-    public static final String TAG = "FalxApi";
 
     private static volatile FalxApi falxApi = null;
 

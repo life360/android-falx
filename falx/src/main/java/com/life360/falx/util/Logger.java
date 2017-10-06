@@ -5,7 +5,7 @@ package com.life360.falx.util;
  */
 
 public interface Logger {
-
+    String TAG = "FalxApi";
 
     int v(String tag, String msg);
 
