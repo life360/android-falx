@@ -6,6 +6,7 @@ import com.life360.falx.model.FalxEventEntity;
 import com.life360.falx.model.FalxMonitorEvent;
 import com.life360.falx.monitor_store.AggregatedFalxMonitorEvent;
 import com.life360.falx.monitor_store.FalxEventStorable;
+import com.life360.falx.monitor_store.FalxEventStore;
 import com.life360.falx.monitor_store.RealmStore;
 
 import java.net.URI;
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 import io.reactivex.Observable;
+import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 import io.realm.RealmList;
@@ -29,8 +31,10 @@ public class FakeFalxEventStore implements FalxEventStorable {
 
     private static final String TAG = FakeFalxEventStore.class.getSimpleName();
 
+    private CompositeDisposable compositeDisposable;
 
     public FakeFalxEventStore(RealmStore store, Context context) {
+        compositeDisposable = new CompositeDisposable();
     }
 
 
@@ -109,15 +113,19 @@ public class FakeFalxEventStore implements FalxEventStorable {
 
     @Override
     public void subscribeToEvents(Observable<FalxMonitorEvent> observable) {
-        //TODO make sure to add it to disposable bag to dispose
-        observable
+        compositeDisposable.add(observable
                 .subscribeOn(Schedulers.io())
                 .subscribe(new Consumer<FalxMonitorEvent>() {
                     @Override
                     public void accept(FalxMonitorEvent event) throws Exception {
                         FakeFalxEventStore.this.save(event);
                     }
-                });
+                }));
+    }
+
+    @Override
+    public void clearSubscriptions() {
+        compositeDisposable.clear();
     }
 
     private boolean isSameDate(Calendar cal1, Calendar cal2) {

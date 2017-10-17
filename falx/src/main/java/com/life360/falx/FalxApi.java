@@ -68,26 +68,33 @@ public class FalxApi {
 
         if ((monitorFlags & MONITOR_APP_STATE) == MONITOR_APP_STATE) {
             if (!monitors.containsKey(MONITOR_APP_STATE)) {
-                monitors.put(MONITOR_APP_STATE, new AppStateMonitor(utilComponent, appStateObservable()));
+                AppStateMonitor appStateMonitor = new AppStateMonitor(utilComponent, appStateObservable());
+                monitors.put(MONITOR_APP_STATE, appStateMonitor);
+                eventStorable.subscribeToEvents(appStateMonitor.getEventObservable());
             }
         }
 
         if ((monitorFlags & MONITOR_NETWORK) == MONITOR_NETWORK) {
             if (!monitors.containsKey(MONITOR_NETWORK)) {
-                monitors.put(MONITOR_NETWORK, new NetworkMonitor(utilComponent, getNetworkActivityObservable()));
+                NetworkMonitor networkMonitor = new NetworkMonitor(utilComponent, getNetworkActivityObservable());
+                monitors.put(MONITOR_NETWORK, networkMonitor);
+                eventStorable.subscribeToEvents(networkMonitor.getEventObservable());
             }
         }
         // todo: and so on
-
-        for (Monitor monitor : monitors.values()) {
-            eventStorable.subscribeToEvents(monitor.getEventObservable());
-        }
     }
 
     public void removeAllMonitors() {
         if (!monitors.isEmpty()) {
+
+            for (Monitor monitor : monitors.values()) {
+                monitor.stop();
+            }
+
             monitors.clear();
         }
+
+        eventStorable.clearSubscriptions();
     }
 
     public boolean isMonitorActive(int monitorId) {

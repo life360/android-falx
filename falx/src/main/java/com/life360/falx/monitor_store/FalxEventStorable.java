@@ -29,4 +29,5 @@ public interface FalxEventStorable {
 
     void subscribeToEvents(Observable<FalxMonitorEvent> observable);
 
+    void clearSubscriptions();
 }

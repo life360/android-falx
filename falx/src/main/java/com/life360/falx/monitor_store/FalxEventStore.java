@@ -23,6 +23,9 @@ import java.util.List;
 import java.util.Map;
 
 import io.reactivex.Observable;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.disposables.Disposables;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 import io.realm.Realm;
@@ -52,9 +55,12 @@ public class FalxEventStore implements FalxEventStorable {
 
     protected RealmStore realmStore;
 
+    private CompositeDisposable compositeDisposable;
+
     public FalxEventStore(RealmStore store, Context context) {
         this.realmStore = store;
         this.context = context;
+        compositeDisposable = new CompositeDisposable();
 
         Realm.init(context);
     }
@@ -350,15 +356,19 @@ public class FalxEventStore implements FalxEventStorable {
 
     @Override
     public void subscribeToEvents(Observable<FalxMonitorEvent> observable) {
-        //TODO make sure to add it to disposable bag to dispose
-        observable
+        compositeDisposable.add(observable
                 .subscribeOn(Schedulers.io())
                 .subscribe(new Consumer<FalxMonitorEvent>() {
                     @Override
                     public void accept(FalxMonitorEvent event) throws Exception {
                         FalxEventStore.this.save(event);
                     }
-                });
+                }));
+    }
+
+    @Override
+    public void clearSubscriptions() {
+        compositeDisposable.clear();
     }
 
     private boolean isSameDate(Calendar cal1, Calendar cal2) {
