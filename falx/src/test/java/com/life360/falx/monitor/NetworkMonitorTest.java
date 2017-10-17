@@ -1,5 +1,8 @@
 package com.life360.falx.monitor;
 
+import android.content.Context;
+
+import com.life360.falx.dagger.AppModule;
 import com.life360.falx.dagger.DaggerTestUtilComponent;
 import com.life360.falx.dagger.FakeDateTimeModule;
 import com.life360.falx.dagger.TestLoggerModule;
@@ -9,18 +12,26 @@ import com.life360.falx.model.NetworkActivity;
 import junit.framework.Assert;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import io.reactivex.subjects.PublishSubject;
 
 /**
  * Created by remon on 9/19/17.
  */
-
+@RunWith(MockitoJUnitRunner.class)
 public class NetworkMonitorTest {
+
+    @Mock
+    Context mockContext;
+
 
     @Test
     public void testObservable() {
         TestUtilComponent testUtilComponent = DaggerTestUtilComponent.builder()
+                .appModule(new AppModule(mockContext))
                 .fakeDateTimeModule(new FakeDateTimeModule())
                 .testLoggerModule(new TestLoggerModule())
                 .build();

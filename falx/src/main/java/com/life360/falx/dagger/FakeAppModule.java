@@ -1,6 +1,5 @@
 package com.life360.falx.dagger;
 
-import android.app.Application;
 import android.content.Context;
 
 import javax.inject.Singleton;
@@ -10,14 +9,16 @@ import dagger.Provides;
 
 /**
  * Created by remon on 7/17/17.
+ * Todo: How can we fake the context?
+ * Currently not faking it, and using Mockito with a Mock Context to use this Module.
  */
 
 @Module
-public class AppModule {
+public class FakeAppModule {
 
     Context appContext;
 
-    public AppModule(Context application) {
+    public FakeAppModule(Context application) {
         appContext = application;
     }
 

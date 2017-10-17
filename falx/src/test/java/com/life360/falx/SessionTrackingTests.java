@@ -2,6 +2,7 @@ package com.life360.falx;
 
 import android.content.Context;
 
+import com.life360.falx.dagger.AppModule;
 import com.life360.falx.dagger.DaggerTestUtilComponent;
 import com.life360.falx.dagger.FakeDateTimeModule;
 import com.life360.falx.dagger.TestLoggerModule;
@@ -37,6 +38,7 @@ public class SessionTrackingTests {
     @Test
     public void testAppStateObserver() {
         TestUtilComponent testUtilComponent = DaggerTestUtilComponent.builder()
+                .appModule(new AppModule(mockContext))                          // Can we have a FakeModule that can work without a Context?
                 .fakeDateTimeModule(new FakeDateTimeModule())
                 .build();
 

@@ -1,9 +1,11 @@
 package com.life360.falx.network;
 
+import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.VisibleForTesting;
 
 import com.life360.falx.FalxApi;
+import com.life360.falx.dagger.AppModule;
 import com.life360.falx.dagger.DaggerUtilComponent;
 import com.life360.falx.dagger.LoggerModule;
 import com.life360.falx.dagger.UtilComponent;
@@ -42,9 +44,10 @@ public class FalxInterceptor implements Interceptor {
     private Observer<NetworkActivity> networkActivityObserver;
 
 
-    public FalxInterceptor(@NonNull Observer<NetworkActivity> networkActivityObserver) {
+    public FalxInterceptor(@NonNull Context appContext, @NonNull Observer<NetworkActivity> networkActivityObserver) {
         UtilComponent utilComponent = DaggerUtilComponent.builder()
                 // list of modules that are part of this component need to be created here too
+                .appModule(new AppModule(appContext))
                 .loggerModule(new LoggerModule())
                 .build();
 

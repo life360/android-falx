@@ -73,8 +73,7 @@ public class AppStateMonitor extends Monitor {
      * fake objects instead of what is provided by UtilComponent
      * @param utilComponent
      */
-    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    AppStateMonitor(@NonNull UtilComponent utilComponent, @NonNull Observable<AppState> appStateObservable) {
+    public AppStateMonitor(@NonNull UtilComponent utilComponent, @NonNull Observable<AppState> appStateObservable) {
         init(utilComponent, appStateObservable);
     }
 

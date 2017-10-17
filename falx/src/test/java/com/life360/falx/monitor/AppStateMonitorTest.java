@@ -1,5 +1,8 @@
 package com.life360.falx.monitor;
 
+import android.content.Context;
+
+import com.life360.falx.dagger.AppModule;
 import com.life360.falx.dagger.DaggerTestUtilComponent;
 import com.life360.falx.dagger.FakeDateTimeModule;
 import com.life360.falx.dagger.TestLoggerModule;
@@ -11,6 +14,7 @@ import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import io.reactivex.Observable;
@@ -20,7 +24,12 @@ import io.reactivex.ObservableOnSubscribe;
 /**
  * Created by remon on 7/26/17.
  */
+@RunWith(MockitoJUnitRunner.class)
 public class AppStateMonitorTest {
+
+    @Mock
+    Context mockContext;
+
     @Before
     public void initMocks() {
     }
@@ -28,6 +37,7 @@ public class AppStateMonitorTest {
     @Test
     public void sessionTest() throws Exception {
         TestUtilComponent testUtilComponent = DaggerTestUtilComponent.builder()
+                .appModule(new AppModule(mockContext))
                 .fakeDateTimeModule(new FakeDateTimeModule())
                 .testLoggerModule(new TestLoggerModule())
                 .build();
@@ -67,6 +77,7 @@ public class AppStateMonitorTest {
     @Test
     public void sessionTestChained() throws Exception {
         TestUtilComponent testUtilComponent = DaggerTestUtilComponent.builder()
+                .appModule(new AppModule(mockContext))
                 .fakeDateTimeModule(new FakeDateTimeModule())
                 .build();
 

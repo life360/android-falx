@@ -14,7 +14,7 @@ import dagger.Component;
  */
 
 @Singleton
-@Component(modules = {DateTimeModule.class, LoggerModule.class})
+@Component(modules = {AppModule.class, DateTimeModule.class, LoggerModule.class, FalxStoreModule.class})
 public interface UtilComponent {
     void inject(FalxApi api);
     void inject(AppStateMonitor monitor);

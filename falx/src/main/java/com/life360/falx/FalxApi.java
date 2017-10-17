@@ -4,10 +4,11 @@ import android.app.Activity;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.VisibleForTesting;
-import android.util.Log;
 
+import com.life360.falx.dagger.AppModule;
 import com.life360.falx.dagger.DaggerUtilComponent;
 import com.life360.falx.dagger.DateTimeModule;
+import com.life360.falx.dagger.FalxStoreModule;
 import com.life360.falx.dagger.LoggerModule;
 import com.life360.falx.dagger.UtilComponent;
 import com.life360.falx.model.NetworkActivity;
@@ -17,12 +18,12 @@ import com.life360.falx.monitor.AppStateMonitor;
 import com.life360.falx.monitor.Monitor;
 import com.life360.falx.monitor.NetworkMonitor;
 import com.life360.falx.monitor_store.AggregatedFalxMonitorEvent;
-import com.life360.falx.monitor_store.FalxEventStore;
-import com.life360.falx.monitor_store.FalxRealm;
+import com.life360.falx.monitor_store.FalxEventStorable;
 import com.life360.falx.network.FalxInterceptor;
 import com.life360.falx.util.Logger;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -33,7 +34,6 @@ import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.Observer;
 import io.reactivex.functions.Cancellable;
 import io.reactivex.subjects.PublishSubject;
-import io.realm.Realm;
 
 /**
  * Created by remon on 6/27/17.
@@ -59,26 +59,39 @@ public class FalxApi {
     /**
      * Add 1 or more Monitors using a integer to specify which monitors to add.
      * The monitor flags are specified by integer constants MONITOR_*
+     * If a monitor was added before it will remain added, and only one insteance of a monitor
+     * shall exist with the FalxApi singleton.
      *
      * @param monitorFlags
      */
     public void addMonitors(int monitorFlags) {
-        if (!monitors.isEmpty()) {
-            monitors.clear();
-        }
 
         if ((monitorFlags & MONITOR_APP_STATE) == MONITOR_APP_STATE) {
-            monitors.add(new AppStateMonitor(appStateObservable()));
+            if (!monitors.containsKey(MONITOR_APP_STATE)) {
+                monitors.put(MONITOR_APP_STATE, new AppStateMonitor(utilComponent, appStateObservable()));
+            }
         }
 
         if ((monitorFlags & MONITOR_NETWORK) == MONITOR_NETWORK) {
-            monitors.add(new NetworkMonitor(getNetworkActivityObservable()));
+            if (!monitors.containsKey(MONITOR_NETWORK)) {
+                monitors.put(MONITOR_NETWORK, new NetworkMonitor(utilComponent, getNetworkActivityObservable()));
+            }
         }
         // todo: and so on
 
-        for (Monitor monitor : monitors) {
-            eventStore.subscribeToEvents(monitor.getEventObservable());
+        for (Monitor monitor : monitors.values()) {
+            eventStorable.subscribeToEvents(monitor.getEventObservable());
         }
+    }
+
+    public void removeAllMonitors() {
+        if (!monitors.isEmpty()) {
+            monitors.clear();
+        }
+    }
+
+    public boolean isMonitorActive(int monitorId) {
+        return monitors.containsKey(monitorId);
     }
 
     /**
@@ -106,6 +119,7 @@ public class FalxApi {
 
     private static volatile FalxApi falxApi = null;
 
+
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     @Inject
     Logger logger;
@@ -113,13 +127,19 @@ public class FalxApi {
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     List<AppStateListener> appStateListeners;
 
-    private Context application;        // Application application
+    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    @Inject
+    FalxEventStorable eventStorable;
+
+    @Inject
+    Context application;        // Application application
 
     private UtilComponent utilComponent;
 
-    private ArrayList<Monitor> monitors = new ArrayList<>();
 
-    private FalxEventStore eventStore;
+    // Maps MonitorId -> Monitor
+    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    protected HashMap<Integer, Monitor> monitors = new HashMap<>();
 
     private FalxInterceptor falxInterceptor;
     private PublishSubject<NetworkActivity> networkActivitySubject = PublishSubject.create();
@@ -129,11 +149,13 @@ public class FalxApi {
         // Create our UtilComponent module, since it will be only used by FalxApi
         UtilComponent utilComponent = DaggerUtilComponent.builder()
                 // list of modules that are part of this component need to be created here too
+                .appModule(new AppModule(context.getApplicationContext()))
                 .dateTimeModule(new DateTimeModule())
                 .loggerModule(new LoggerModule())
+                .falxStoreModule(new FalxStoreModule())
                 .build();
 
-        Realm.init(context);
+
         init(context, utilComponent);
     }
 
@@ -160,7 +182,7 @@ public class FalxApi {
 
         appStateListeners = new ArrayList<>();
 
-        eventStore = new FalxEventStore(new FalxRealm(), context);
+        //eventStorable = new FalxEventStore(new FalxRealm(), context);
     }
 
     public void addAppStateListener(AppStateListener listener) {
@@ -196,7 +218,7 @@ public class FalxApi {
      */
     public FalxInterceptor getInterceptor() {
         if (falxInterceptor == null) {
-            falxInterceptor = new FalxInterceptor(getNetworkActivityObserver());
+            falxInterceptor = new FalxInterceptor(application, getNetworkActivityObserver());
         }
 
         return falxInterceptor;
@@ -249,8 +271,8 @@ public class FalxApi {
      * @return list of aggregated Falx monitor events
      */
     public List<AggregatedFalxMonitorEvent> aggregateEvents(String eventName) {
-        if (eventStore != null) {
-            return eventStore.aggregateEvents(eventName);
+        if (eventStorable != null) {
+            return eventStorable.aggregateEvents(eventName);
         }
         return null;
     }
@@ -263,8 +285,8 @@ public class FalxApi {
      * @return list of aggregated Falx monitor events
      */
     public List<AggregatedFalxMonitorEvent> aggregatedEvents(String eventName, boolean allowPartialDays) {
-        if (eventStore != null) {
-            return eventStore.aggregatedEvents(eventName, allowPartialDays);
+        if (eventStorable != null) {
+            return eventStorable.aggregatedEvents(eventName, allowPartialDays);
         }
         return null;
     }
@@ -276,22 +298,9 @@ public class FalxApi {
      * @return list of aggregated Falx monitor events
      */
     public List<AggregatedFalxMonitorEvent> allAggregatedEvents(boolean allowPartialDays) {
-        if (eventStore != null) {
-            return eventStore.allAggregatedEvents(allowPartialDays);
+        if (eventStorable != null) {
+            return eventStorable.allAggregatedEvents(allowPartialDays);
         }
         return null;
-    }
-
-    // ** Test function
-    public void testStoredData() {
-//        realmInstance realm = realmInstance.getDefaultInstance();
-//        RealmQuery<FalxData> query = realm.where(FalxData.class);
-//
-//        RealmResults<FalxData> result = query.findAll();
-//
-//        logger.d(TAG, "Stored data: ");
-//        for (FalxData data : result) {
-//            logger.d(TAG, data.toString());
-//        }
     }
 }

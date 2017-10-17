@@ -48,13 +48,15 @@ public class FalxEventStore implements FalxEventStorable {
      */
     private static final int SYNC_INTERVAL = 24;
 
-    private Context context;
+    protected Context context;
 
-    private RealmStore realmStore;
+    protected RealmStore realmStore;
 
     public FalxEventStore(RealmStore store, Context context) {
         this.realmStore = store;
         this.context = context;
+
+        Realm.init(context);
     }
 
 

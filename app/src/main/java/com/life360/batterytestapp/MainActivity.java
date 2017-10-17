@@ -87,8 +87,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onStart() {
         super.onStart();
 
-        FalxApi.getInstance(this).testStoredData();
-
         FalxApi.getInstance(this).startSession(this);
     }
 

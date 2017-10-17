@@ -57,8 +57,7 @@ public class NetworkMonitor extends Monitor {
 
     }
 
-    @VisibleForTesting
-    protected NetworkMonitor(@android.support.annotation.NonNull UtilComponent utilComponent, @NonNull Observable<NetworkActivity> networkActivityObservable) {
+    public NetworkMonitor(@NonNull UtilComponent utilComponent, @NonNull Observable<NetworkActivity> networkActivityObservable) {
         utilComponent.inject(this);
 
         networkActivityDisposable = networkActivityObservable

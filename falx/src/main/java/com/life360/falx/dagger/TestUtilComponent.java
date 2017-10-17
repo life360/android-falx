@@ -11,7 +11,7 @@ import dagger.Component;
  */
 
 @Singleton
-@Component(modules = {FakeDateTimeModule.class, TestLoggerModule.class})
+@Component(modules = {AppModule.class, FakeDateTimeModule.class, TestLoggerModule.class, FakeFalxStoreModule.class})
 public interface TestUtilComponent extends UtilComponent {
     void inject(FalxApi api);
 }
