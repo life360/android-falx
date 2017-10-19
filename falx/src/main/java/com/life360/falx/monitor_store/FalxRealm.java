@@ -20,6 +20,7 @@ public class FalxRealm implements RealmStore {
     public Realm realmInstance() {
         RealmConfiguration configuration = new RealmConfiguration.Builder()
                 .name(realmFileName)
+                .modules(new FalxLibraryModule())
                 .build();
         return Realm.getInstance(configuration);
     }
