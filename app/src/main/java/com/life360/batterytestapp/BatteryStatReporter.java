@@ -9,6 +9,9 @@ import android.util.Log;
 import com.life360.falx.FalxApi;
 import com.life360.falx.monitor_store.AggregatedFalxMonitorEvent;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.List;
 
 /**
@@ -52,7 +55,16 @@ public class BatteryStatReporter extends IntentService {
             for (AggregatedFalxMonitorEvent event : aggregatedFalxMonitorEvents) {
                 Log.d(TAG, event.toString());
 
-                Log.d(TAG, " count =  " + event.getCount() + " duration = " + event.getDuration() + " time = " + event.getTimestamp());
+                JSONObject params;
+
+                try {
+                    params = event.getParamsAsJson();
+                    Log.d(TAG, "params: " + params.toString());
+                } catch (JSONException e) {
+                    Log.e(TAG, e.toString());
+                }
+
+
             }
 
             Intent broadcastIntent = new Intent("ACTION_SEND_BATTERY_STATS_RESULT");

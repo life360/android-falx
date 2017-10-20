@@ -1,6 +1,7 @@
 package com.life360.falx.monitor;
 
 import android.support.annotation.VisibleForTesting;
+import android.text.format.DateUtils;
 
 import com.life360.falx.dagger.DaggerUtilComponent;
 import com.life360.falx.dagger.DateTimeModule;
@@ -28,10 +29,6 @@ import io.reactivex.schedulers.Schedulers;
 public class NetworkMonitor extends Monitor {
 
     private static final String TAG = "NetworkMonitor";
-
-    private static final String NETWORK_FIELD_NAME = "falx-network";
-    private static final String BYTES_RECEIVED = "bytesReceived";
-    private static final String COUNT = "count";
 
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     protected Disposable networkActivityDisposable;
@@ -76,10 +73,11 @@ public class NetworkMonitor extends Monitor {
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     protected void saveToDataStore(NetworkActivity activity) {
         HashMap<String, Double> args = new HashMap<>();
-        args.put(COUNT, new Double(activity.getCount()));
-        args.put(BYTES_RECEIVED, new Double(activity.getBytesReceived()));
+        args.put(FalxConstants.PROP_COUNT, new Double(activity.getCount()));
+        args.put(FalxConstants.PROP_BYTES_RECEIVED, new Double(activity.getBytesReceived()));
+        args.put(FalxConstants.PROP_DURATION, new Double(activity.getResponseDuration() / DateUtils.SECOND_IN_MILLIS));
 
-        eventPublishSubject.onNext(new FalxMonitorEvent(NETWORK_FIELD_NAME, args));
+        eventPublishSubject.onNext(new FalxMonitorEvent(FalxConstants.EVENT_NETWORK, args));
     }
 
     @Override

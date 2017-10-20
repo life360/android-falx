@@ -4,7 +4,6 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.VisibleForTesting;
 
-import com.life360.falx.FalxApi;
 import com.life360.falx.dagger.AppModule;
 import com.life360.falx.dagger.DaggerUtilComponent;
 import com.life360.falx.dagger.LoggerModule;
@@ -68,9 +67,11 @@ public class FalxInterceptor implements Interceptor {
         Response response = chain.proceed(request);
         long t2 = System.nanoTime();
 
+        final double responseTime = (t2 - t1) / 1e6d;
+
         final HttpUrl httpUrl = response.request().url();
         logger.i(Logger.TAG, String.format("Received response for %s in %.1fms%n",
-                httpUrl, (t2 - t1) / 1e6d));
+                httpUrl, responseTime));
 
         // Note: Do not consume the response body here.
 
@@ -83,7 +84,7 @@ public class FalxInterceptor implements Interceptor {
         logger.i(Logger.TAG, "Response length: (bytes) = " + bytesReceived);
 
         // Publish result to the Observable
-        networkActivityObserver.onNext(new NetworkActivity(1, bytesReceived, httpUrl.toString()));
+        networkActivityObserver.onNext(new NetworkActivity(1, bytesReceived, responseTime, httpUrl.toString()));
 
         return response;
     }

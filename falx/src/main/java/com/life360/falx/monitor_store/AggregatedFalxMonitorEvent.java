@@ -1,5 +1,8 @@
 package com.life360.falx.monitor_store;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -48,6 +51,20 @@ public class AggregatedFalxMonitorEvent {
             return this.arguments.get(AggregatedFalxMonitorEvent.TIMESTAMP);
         }
         return 0.0;
+    }
+
+    /**
+     * Reterun a JSONObject containing the key-value pairs for the event
+     * @throws JSONException
+     */
+    public JSONObject getParamsAsJson() throws JSONException {
+        JSONObject object = new JSONObject();
+
+        object.put(COUNT, getCount());
+        object.put(TIMESTAMP, getTimestamp());
+        object.put(DURATION, getDuration());
+
+        return object;
     }
 
     public void putArgument(String key, Double value) {

@@ -5,8 +5,8 @@ package com.life360.falx.monitor;
  */
 
 public enum AppState {
-    FOREGROUND("foreground"),
-    BACKGROUND("background");
+    FOREGROUND(FalxConstants.EVENT_FOREGROUND),
+    BACKGROUND(FalxConstants.EVENT_BACKGROUND);
 
     AppState(String name) {
         this.name = name;

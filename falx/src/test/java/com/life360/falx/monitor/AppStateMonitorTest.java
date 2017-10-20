@@ -138,7 +138,39 @@ public class AppStateMonitorTest {
         monitor.stop();
     }
 
-    // Dummy Observable for tests
+    @Test
+    public void sessionTestErrorCase() throws Exception {
+        TestUtilComponent testUtilComponent = DaggerTestUtilComponent.builder()
+                .appModule(new AppModule(mockContext))
+                .fakeDateTimeModule(new FakeDateTimeModule())
+                .build();
+
+        AppStateMonitor monitor = new AppStateMonitor(testUtilComponent, appStateObservable()) {
+            @Override
+            protected void saveToDataStore() {
+                // do nothing.
+            }
+        };
+
+        TestClock testClock = (TestClock) monitor.clock;
+
+        final long firstSessionStartTime = 100L;
+        long currentTime = firstSessionStartTime;
+        testClock.setCurrentTimeMillis(currentTime);
+
+        Assert.assertEquals(testClock.currentTimeMillis(), currentTime);
+
+        // We did not get a onForeground, but get a onBackground
+        monitor.onBackground();
+        monitor.onSessionEnded();
+
+        Assert.assertEquals(monitor.lastSessionData.startTime, 0);
+        // If the startTime was never set, then lastSessionData should record 0 as the session time
+        Assert.assertEquals(monitor.lastSessionData.getDuration(), 0);
+
+    }
+
+        // Dummy Observable for tests
     private Observable<AppState> appStateObservable() {
 
         return Observable.create(new ObservableOnSubscribe<AppState>() {

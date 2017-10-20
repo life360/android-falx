@@ -7,11 +7,13 @@ package com.life360.falx.model;
 public class NetworkActivity {
     int count;
     int bytesReceived;
+    double responseDuration;
     String url;
 
-    public NetworkActivity(int count, int bytesReceived, String url) {
+    public NetworkActivity(int count, int bytesReceived, double responseDuration, String url) {
         this.count = count;
         this.bytesReceived = bytesReceived;
+        this.responseDuration = responseDuration;
         this.url = url;
     }
 
@@ -20,6 +22,7 @@ public class NetworkActivity {
         return "NetworkActivity{" +
                 "count=" + count +
                 ", bytesReceived=" + bytesReceived +
+                ", responseDuration=" + responseDuration +
                 ", url='" + url + '\'' +
                 '}';
     }
@@ -30,6 +33,10 @@ public class NetworkActivity {
 
     public int getBytesReceived() {
         return bytesReceived;
+    }
+
+    public double getResponseDuration() {
+        return responseDuration;
     }
 
     public String getUrl() {

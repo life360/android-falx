@@ -1,6 +1,9 @@
 package com.life360.falx.model;
 
+import android.text.format.DateUtils;
+
 import com.life360.falx.monitor.AppState;
+import com.life360.falx.monitor.FalxConstants;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -9,8 +12,6 @@ import java.util.Map;
  * Created by remon on 7/12/17.
  */
 public class SessionData {
-
-    public static final String DURATION = "duration";
 
     public long startTime;          // in milliseconds
     public long endTime;            // in milliseconds
@@ -22,13 +23,24 @@ public class SessionData {
         this.endTime = endTime;
     }
 
+    /**
+     * Get duration for the session in milliseconds.
+     * @return session time in milliseconds, or 0 if the session was not recorded correctly.
+     */
     public long getDuration() {
-        return endTime - startTime;
+        if (startTime == 0) {
+            // If a start time was not set, then we will consider the duration to be 0 milliseconds.
+            return 0;
+        } else {
+            return endTime - startTime;
+        }
     }
 
     public Map<String, Double> getArgumentMap() {
         Map<String, Double> extras = new HashMap<>();
-        extras.put(DURATION, new Double(getDuration()));
+
+        final long durationMillis = getDuration();
+        extras.put(FalxConstants.PROP_DURATION, new Double((double) durationMillis / DateUtils.SECOND_IN_MILLIS));
 
         return extras;
     }
