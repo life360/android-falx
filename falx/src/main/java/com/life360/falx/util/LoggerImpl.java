@@ -7,58 +7,109 @@ import android.util.Log;
  */
 
 public class LoggerImpl implements Logger {
+    private boolean enabled;
+
     @Override
     public int v(String tag, String msg) {
-        return Log.v(tag, msg);
+        if (enabled) {
+            return Log.v(tag, msg);
+        } else {
+            return 0;
+        }
     }
 
     @Override
     public int v(String tag, String msg, Throwable tr) {
-        return Log.v(tag, msg, tr);
+        if (enabled) {
+            return Log.v(tag, msg, tr);
+        } else {
+            return 0;
+        }
     }
 
     @Override
     public int d(String tag, String msg) {
-        return Log.d(tag, msg);
+        if (enabled) {
+            return Log.d(tag, msg);
+        } else {
+            return 0;
+        }
     }
 
     @Override
     public int d(String tag, String msg, Throwable tr) {
-        return Log.d(tag, msg, tr);
+        if (enabled) {
+            return Log.d(tag, msg, tr);
+        } else {
+            return 0;
+        }
     }
 
     @Override
     public int i(String tag, String msg) {
-        return Log.i(tag, msg);
+        if (enabled) {
+            return Log.i(tag, msg);
+        } else {
+            return 0;
+        }
     }
 
     @Override
     public int i(String tag, String msg, Throwable tr) {
-        return Log.i(tag, msg, tr);
+        if (enabled) {
+            return Log.i(tag, msg, tr);
+        } else {
+            return 0;
+        }
     }
 
     @Override
     public int w(String tag, String msg) {
-        return Log.w(tag, msg);
+        if (enabled) {
+            return Log.w(tag, msg);
+        } else {
+            return 0;
+        }
     }
 
     @Override
     public int w(String tag, String msg, Throwable tr) {
-        return Log.w(tag, msg, tr);
+        if (enabled) {
+            return Log.w(tag, msg, tr);
+        } else {
+            return 0;
+        }
     }
 
     @Override
     public int w(String tag, Throwable tr) {
-        return Log.w(tag, tr);
+        if (enabled) {
+            return Log.w(tag, tr);
+        } else {
+            return 0;
+        }
     }
 
     @Override
     public int e(String tag, String msg) {
-        return Log.e(tag, msg);
+        if (enabled) {
+            return Log.e(tag, msg);
+        } else {
+            return 0;
+        }
     }
 
     @Override
     public int e(String tag, String msg, Throwable tr) {
-        return Log.e(tag, msg, tr);
+        if (enabled) {
+            return Log.e(tag, msg, tr);
+        } else {
+            return 0;
+        }
+    }
+
+    @Override
+    public void setEnabled(boolean enable) {
+        enabled = enable;
     }
 }

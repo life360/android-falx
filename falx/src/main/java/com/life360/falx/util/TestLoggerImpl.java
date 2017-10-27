@@ -59,4 +59,7 @@ public class TestLoggerImpl implements Logger {
     public int e(String tag, String msg, Throwable tr) {
         return 0;
     }
+
+    @Override
+    public void setEnabled(boolean enable) { }
 }
