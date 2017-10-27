@@ -143,6 +143,8 @@ public class FalxApi {
 
     private UtilComponent utilComponent;
 
+    private boolean loggingEnabled;
+
 
     // Maps MonitorId -> Monitor
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
@@ -202,6 +204,11 @@ public class FalxApi {
 
     public void removeAllAppStateListeners() {
         appStateListeners.clear();
+    }
+
+    public void enableLogging(boolean enable) {
+        logger.setEnabled(enable);
+        falxInterceptor.enableLogging(enable);
     }
 
     @VisibleForTesting

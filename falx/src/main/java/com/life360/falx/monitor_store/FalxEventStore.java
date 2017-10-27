@@ -85,8 +85,6 @@ public class FalxEventStore implements FalxEventStorable {
         realm.beginTransaction();
         realm.copyToRealm(entity);
         realm.commitTransaction();
-
-        this.testFunction();
     }
 
     @Override
@@ -380,8 +378,6 @@ public class FalxEventStore implements FalxEventStorable {
 
     // ** Test function
     public void testFunction() {
-//        deleteOldEvents();
-//        Log.d(TAG, "deleted old events");
         Realm realm = realmStore.realmInstance();
 
         RealmResults<FalxEventEntity> entities = realm.where(FalxEventEntity.class).findAll();
@@ -389,9 +385,5 @@ public class FalxEventStore implements FalxEventStorable {
         for (FalxEventEntity entity : entities) {
             Log.d(TAG, entity.toString() + "----" + entity.getArguments().toString());
         }
-
-//        List<AggregratedFalxMonitorEvent> list = this.allAggregatedEvents(true);
-//        Log.d(TAG,list.toString());
-//        this.eventToJSONFile();
     }
 }

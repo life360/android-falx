@@ -36,6 +36,7 @@ import static android.app.job.JobInfo.NETWORK_TYPE_ANY;
 public class MainActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
+    private boolean logging;
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     @Override
@@ -55,6 +56,19 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 Log.d("rk-dbg", "Test aggregate data query...");
 
                 BatteryStatReporter.sendLogs(MainActivity.this);
+            }
+        });
+
+        findViewById(R.id.trigger_logging).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                logging = !logging;
+                FalxApi.getInstance(MainActivity.this).enableLogging(logging);
+                if (logging) {
+                    Toast.makeText(MainActivity.this, "Falx Logging enabled.", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(MainActivity.this, "Falx Logging disabled.", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 

@@ -8,6 +8,14 @@
         android:layout_height="wrap_content"
         android:background="@android:drawable/stat_sys_upload_done"/>
 
+    <Button
+        android:id="@+id/trigger_logging"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:background="@android:drawable/btn_default"
+        android:text="!Log"/>
+
     <fragment
         xmlns:map="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
