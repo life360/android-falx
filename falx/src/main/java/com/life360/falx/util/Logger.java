@@ -30,4 +30,5 @@ public interface Logger {
     int e(String tag, String msg, Throwable tr);
 
     void setEnabled(boolean enable);
+    boolean isEnabled();
 }

@@ -48,6 +48,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+        FalxApi.getInstance(MainActivity.this).enableLogging(true);
         FalxApi.getInstance(this).addMonitors(FalxApi.MONITOR_APP_STATE | FalxApi.MONITOR_NETWORK);
 
         findViewById(R.id.trigger_stats).setOnClickListener(new View.OnClickListener() {

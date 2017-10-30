@@ -38,7 +38,7 @@ public class FalxInterceptor implements Interceptor {
 
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     @Inject
-    Logger logger;
+    public Logger logger;
 
     private Observer<NetworkActivity> networkActivityObserver;
 

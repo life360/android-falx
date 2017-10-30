@@ -112,4 +112,9 @@ public class LoggerImpl implements Logger {
     public void setEnabled(boolean enable) {
         enabled = enable;
     }
+
+    @Override
+    public boolean isEnabled() {
+        return enabled;
+    }
 }

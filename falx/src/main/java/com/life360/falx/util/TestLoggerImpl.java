@@ -5,6 +5,8 @@ package com.life360.falx.util;
  */
 
 public class TestLoggerImpl implements Logger {
+    private boolean enabled;
+
     @Override
     public int v(String tag, String msg) {
         return 0;
@@ -61,5 +63,12 @@ public class TestLoggerImpl implements Logger {
     }
 
     @Override
-    public void setEnabled(boolean enable) { }
+    public void setEnabled(boolean enable) {
+        enabled = enable;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return enabled;
+    }
 }
