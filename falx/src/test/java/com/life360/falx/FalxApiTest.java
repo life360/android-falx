@@ -6,6 +6,7 @@ import com.life360.falx.dagger.AppModule;
 import com.life360.falx.dagger.DaggerTestUtilComponent;
 import com.life360.falx.dagger.FakeDateTimeModule;
 import com.life360.falx.dagger.TestUtilComponent;
+import com.life360.falx.network.FalxInterceptor;
 
 import junit.framework.Assert;
 
@@ -54,4 +55,21 @@ public class FalxApiTest {
         Assert.assertEquals(api.monitors.size(), 0);
     }
 
+    @Test
+    public void testEnableLogging() {
+        TestUtilComponent testUtilComponent = DaggerTestUtilComponent.builder()
+                .appModule(new AppModule(mockContext))
+                .fakeDateTimeModule(new FakeDateTimeModule())
+                .build();
+
+        FalxApi api = new FalxApi(mockContext, testUtilComponent);
+        Assert.assertNotNull(api);
+
+        api.enableLogging(true);
+        FalxInterceptor interceptor = api.getInterceptor();
+        Assert.assertFalse(interceptor.logger.isEnabled());
+
+        api.enableLogging(true);
+        Assert.assertTrue(interceptor.logger.isEnabled());
+    }
 }

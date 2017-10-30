@@ -190,8 +190,6 @@ public class FalxApi {
         this.utilComponent.inject(this);
 
         appStateListeners = new ArrayList<>();
-
-        //eventStorable = new FalxEventStore(new FalxRealm(), context);
     }
 
     public void addAppStateListener(AppStateListener listener) {
@@ -208,7 +206,9 @@ public class FalxApi {
 
     public void enableLogging(boolean enable) {
         logger.setEnabled(enable);
-        falxInterceptor.enableLogging(enable);
+        if (falxInterceptor != null) {
+            falxInterceptor.enableLogging(enable);
+        }
     }
 
     @VisibleForTesting
