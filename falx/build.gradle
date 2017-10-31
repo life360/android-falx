@@ -9,7 +9,7 @@ apply plugin: 'realm-android'
 
 android {
     compileSdkVersion 26
-    buildToolsVersion "26.0.2"
+    buildToolsVersion "26.0.1"
 
     // Sets the "debug" build variant as the default variant
     // of the library that Gradle should publish.
@@ -18,8 +18,8 @@ android {
     defaultConfig {
         minSdkVersion 15
         targetSdkVersion 26
-        versionCode 9
-        versionName "0.1.7"
+        versionCode 10
+        versionName "0.1.8"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }

@@ -10,6 +10,8 @@ public class FalxConstants {
     public static final String EVENT_FOREGROUND = "foreground";
     public static final String EVENT_BACKGROUND = "background";
     public static final String EVENT_NETWORK = "falx-network";
+    public static final String EVENT_GPS_ON = "gps-on";
+    public static final String EVENT_GPS_OFF = "gps-off";
 
     // Event property names
     public static final String PROP_DURATION = "duration";

@@ -15,6 +15,9 @@ import com.life360.falx.model.NetworkActivity;
 import com.life360.falx.monitor.AppState;
 import com.life360.falx.monitor.AppStateListener;
 import com.life360.falx.monitor.AppStateMonitor;
+import com.life360.falx.monitor.GpsMonitor;
+import com.life360.falx.monitor.GpsState;
+import com.life360.falx.monitor.GpsStateListener;
 import com.life360.falx.monitor.Monitor;
 import com.life360.falx.monitor.NetworkMonitor;
 import com.life360.falx.monitor_store.AggregatedFalxMonitorEvent;
@@ -42,6 +45,7 @@ public class FalxApi {
 
     public static final int MONITOR_APP_STATE = 0x01;
     public static final int MONITOR_NETWORK = 0x02;
+    public static final int MONITOR_GPS = 0x04;
     // .. and so on
 
     public static FalxApi getInstance(Context context) {
@@ -79,6 +83,14 @@ public class FalxApi {
                 NetworkMonitor networkMonitor = new NetworkMonitor(utilComponent, getNetworkActivityObservable());
                 monitors.put(MONITOR_NETWORK, networkMonitor);
                 eventStorable.subscribeToEvents(networkMonitor.getEventObservable());
+            }
+        }
+
+        if ((monitorFlags & MONITOR_GPS) == MONITOR_GPS) {
+            if (!monitors.containsKey(MONITOR_GPS)) {
+                GpsMonitor gpsMonitor = new GpsMonitor(utilComponent, getGpsStateObservable());
+                monitors.put(MONITOR_GPS, gpsMonitor);
+                eventStorable.subscribeToEvents(gpsMonitor.getEventObservable());
             }
         }
         // todo: and so on
@@ -123,6 +135,18 @@ public class FalxApi {
         return true;
     }
 
+    public void onGpsOn() {
+        if (gpsStateListener != null) {
+            gpsStateListener.onGpsOn();
+        }
+    }
+
+    public void onGpsOff() {
+        if (gpsStateListener != null) {
+            gpsStateListener.onGpsOff();
+        }
+
+    }
 
     private static volatile FalxApi falxApi = null;
 
@@ -137,6 +161,9 @@ public class FalxApi {
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     @Inject
     FalxEventStorable eventStorable;
+
+    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    GpsStateListener gpsStateListener;
 
     @Inject
     Context application;        // Application application
@@ -264,6 +291,34 @@ public class FalxApi {
                     @Override
                     public void cancel() throws Exception {
                         removeAppStateListener(appStateListener);
+                    }
+                });
+            }
+        });
+    }
+
+    @VisibleForTesting
+    Observable<GpsState> getGpsStateObservable() {
+        return Observable.create(new ObservableOnSubscribe<GpsState>() {
+
+            @Override
+            public void subscribe(@io.reactivex.annotations.NonNull final ObservableEmitter<GpsState> gpsStateEmitter) throws Exception {
+                gpsStateListener = new GpsStateListener() {
+
+                    @Override
+                    public void onGpsOn() {
+                        gpsStateEmitter.onNext(GpsState.ON);
+                    }
+
+                    @Override
+                    public void onGpsOff() {
+                        gpsStateEmitter.onNext(GpsState.OFF);
+                    }
+                };
+                gpsStateEmitter.setCancellable(new Cancellable() {
+                    @Override
+                    public void cancel() throws Exception {
+                        gpsStateListener = null;
                     }
                 });
             }

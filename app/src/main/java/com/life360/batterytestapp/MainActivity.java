@@ -49,7 +49,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
 
         FalxApi.getInstance(MainActivity.this).enableLogging(true);
-        FalxApi.getInstance(this).addMonitors(FalxApi.MONITOR_APP_STATE | FalxApi.MONITOR_NETWORK);
+        FalxApi.getInstance(this).addMonitors(FalxApi.MONITOR_APP_STATE | FalxApi.MONITOR_NETWORK | FalxApi.MONITOR_GPS);
 
         findViewById(R.id.trigger_stats).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -103,6 +103,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         super.onStart();
 
         FalxApi.getInstance(this).startSession(this);
+        FalxApi.getInstance(this).onGpsOn();
     }
 
     @Override
@@ -110,6 +111,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         super.onStop();
 
         FalxApi.getInstance(this).endSession(this);
+        FalxApi.getInstance(this).onGpsOff();
     }
 
 
