@@ -68,7 +68,11 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         findViewById(R.id.get_events_json).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                showLogs(FalxApi.getInstance(MainActivity.this).evnetToJSON());
+                try {
+                    showLogs(FalxApi.getInstance(MainActivity.this).evnetToJSON());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         });
 
