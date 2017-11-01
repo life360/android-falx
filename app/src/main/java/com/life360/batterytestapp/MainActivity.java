@@ -7,6 +7,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
 import android.text.format.DateUtils;
 import android.util.Log;
@@ -23,7 +24,11 @@ import com.life360.batterytestapp.google.GeocodeResponse;
 import com.life360.batterytestapp.google.GooglePlatform;
 import com.life360.falx.FalxApi;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.net.URI;
 import java.util.List;
 import java.util.Locale;
 
@@ -57,6 +62,13 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 Log.d("rk-dbg", "Test aggregate data query...");
 
                 BatteryStatReporter.sendLogs(MainActivity.this);
+            }
+        });
+
+        findViewById(R.id.get_events_json).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showLogs(FalxApi.getInstance(MainActivity.this).evnetToJSON());
             }
         });
 
@@ -171,6 +183,32 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                         });
             }
         });
+
+    }
+
+    private void showLogs(@NonNull URI uri) throws IOException {
+
+        File file = new File(uri);
+
+        StringBuilder text = new StringBuilder();
+        BufferedReader br = null;
+        try {
+            br = new BufferedReader(new FileReader(file));
+            String line;
+
+            while ((line = br.readLine()) != null) {
+                text.append(line);
+                text.append('\n');
+            }
+        } catch (IOException e) {
+            Log.d("vs-dbg", "file read failed", e.getCause());
+        } finally {
+            if (br != null) {
+                br.close();
+            }
+        }
+
+        Toast.makeText(this, text.toString(), Toast.LENGTH_LONG).show();
 
     }
 }

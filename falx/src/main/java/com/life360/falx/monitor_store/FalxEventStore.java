@@ -65,7 +65,6 @@ public class FalxEventStore implements FalxEventStorable {
         Realm.init(context);
     }
 
-
     public Date getSyncDate() {
         SharedPreferences preferences = context.getSharedPreferences(FALX_EVENT_STORE_SYNC_DATE_KEY, Context.MODE_PRIVATE);
         return new Date(preferences.getLong(FALX_EVENT_STORE_SYNC_DATE_KEY, 0));

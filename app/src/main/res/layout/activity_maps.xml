@@ -14,7 +14,14 @@
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:background="@android:drawable/btn_default"
-        android:text="!Log"/>
+        android:text="!Log" />
+
+    <Button
+        android:id="@+id/get_events_json"
+        android:layout_width="wrap_content"
+        android:layout_below="@id/trigger_logging"
+        android:layout_height="wrap_content"
+        android:text="get events in json format"/>
 
     <fragment
         xmlns:map="http://schemas.android.com/apk/res-auto"

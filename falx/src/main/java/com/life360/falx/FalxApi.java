@@ -25,6 +25,7 @@ import com.life360.falx.monitor_store.FalxEventStorable;
 import com.life360.falx.network.FalxInterceptor;
 import com.life360.falx.util.Logger;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -369,6 +370,17 @@ public class FalxApi {
     public List<AggregatedFalxMonitorEvent> allAggregatedEvents(boolean allowPartialDays) {
         if (eventStorable != null) {
             return eventStorable.allAggregatedEvents(allowPartialDays);
+        }
+        return null;
+    }
+
+    /**
+     * get JSON file URI which contains all Falx events
+     * @return URI of file
+     */
+    public URI evnetToJSON(){
+        if(eventStorable != null){
+            return eventStorable.eventToJSONFile();
         }
         return null;
     }
