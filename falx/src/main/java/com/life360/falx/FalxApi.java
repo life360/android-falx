@@ -350,7 +350,7 @@ public class FalxApi {
     /**
      * get aggregated events for the provided event, also partial day option is available
      *
-     * @param eventName name of event
+     * @param eventName        name of event
      * @param allowPartialDays if true partial day's data also included
      * @return list of aggregated Falx monitor events
      */
@@ -376,10 +376,11 @@ public class FalxApi {
 
     /**
      * get JSON file URI which contains all Falx events
+     *
      * @return URI of file
      */
-    public URI evnetToJSON(){
-        if(eventStorable != null){
+    public URI eventToJSON() {
+        if (eventStorable != null) {
             return eventStorable.eventToJSONFile();
         }
         return null;
