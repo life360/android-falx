@@ -98,10 +98,8 @@ public class FakeFalxEventStore implements FalxEventStorable {
     }
 
     @Override
-    public URI eventToJSONFile() {
+    public URI eventToJSONFile(String fileName) {
         this.deleteOldEvents();
-
-        String fileName = "FalxEvents";
 
         // todo
         try {

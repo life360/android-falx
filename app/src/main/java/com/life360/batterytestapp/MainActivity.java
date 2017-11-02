@@ -69,7 +69,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onClick(View view) {
                 try {
-                    showLogs(FalxApi.getInstance(MainActivity.this).evnetToJSON());
+                    showLogs(FalxApi.getInstance(MainActivity.this).eventToJSON("falx_logs_test.log"));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

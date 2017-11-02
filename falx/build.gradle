@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 
 // For jitpack
 apply plugin: 'com.github.dcendents.android-maven'
-group='com.github.life360'
+group = 'com.github.life360'
 
 apply plugin: 'realm-android'
 
@@ -18,8 +18,8 @@ android {
     defaultConfig {
         minSdkVersion 15
         targetSdkVersion 26
-        versionCode 11
-        versionName "0.1.9"
+        versionCode 12
+        versionName "0.1.10"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }

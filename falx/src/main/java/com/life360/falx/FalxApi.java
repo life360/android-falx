@@ -377,11 +377,12 @@ public class FalxApi {
     /**
      * get JSON file URI which contains all Falx events
      *
-     * @return URI of file
+     * @param fileName provide name to the JSON file created e.g Falx_Logs_(Users’ Email)_d_(user’s device ID)_u_(user’s user id)
+     * @return URI of the newly created file
      */
-    public URI eventToJSON() {
+    public URI eventToJSON(@NonNull String fileName) {
         if (eventStorable != null) {
-            return eventStorable.eventToJSONFile();
+            return eventStorable.eventToJSONFile(fileName);
         }
         return null;
     }
