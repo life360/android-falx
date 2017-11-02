@@ -2,6 +2,7 @@ package com.life360.falx.monitor_store;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.life360.falx.model.FalxEventEntity;
@@ -285,18 +286,14 @@ public class FalxEventStore implements FalxEventStorable {
     }
 
     @Override
-    public URI eventToJSONFile() {
+    public URI eventToJSONFile(@NonNull String fileName) {
         this.deleteOldEvents();
 
-        String fileName = "FalxEvents";
-
-        File jsonFile = null;
-        try {
-            jsonFile = File.createTempFile(fileName, null, context.getCacheDir());
-        } catch (IOException e) {
-            Log.e(TAG, e.getMessage());
+        if (fileName.length() == 0) {
             return null;
         }
+
+        File jsonFile = new File(context.getCacheDir(), fileName);
 
         Realm realm = realmStore.realmInstance();
 
@@ -322,7 +319,7 @@ public class FalxEventStore implements FalxEventStorable {
                     jsonObject.put(entry.getKey(), Double.toString(entry.getValue()));
                 }
             } catch (JSONException e) {
-                Log.d(TAG,e.getMessage());
+                Log.d(TAG, e.getMessage());
                 return null;
             }
 
@@ -330,7 +327,7 @@ public class FalxEventStore implements FalxEventStorable {
         }
         FileOutputStream fileOutputStream = null;
         try {
-            fileOutputStream = new FileOutputStream(jsonFile);
+            fileOutputStream = new FileOutputStream(jsonFile, false);
             byte[] content = jsonEvents.toString().getBytes();
 
             fileOutputStream.write(content);
@@ -343,7 +340,7 @@ public class FalxEventStore implements FalxEventStorable {
                     fileOutputStream.flush();
                     fileOutputStream.close();
                 } catch (IOException e) {
-                    Log.d(TAG,e.getMessage());
+                    Log.d(TAG, e.getMessage());
                     return null;
                 }
         }

@@ -1,7 +1,6 @@
 package com.life360.falx.monitor_store;
 
 
-
 import com.life360.falx.model.FalxMonitorEvent;
 
 import java.net.URI;
@@ -25,7 +24,7 @@ public interface FalxEventStorable {
 
     List<AggregatedFalxMonitorEvent> allAggregatedEvents(boolean allowPartialDays);
 
-    URI eventToJSONFile();
+    URI eventToJSONFile(String fileName);
 
     void subscribeToEvents(Observable<FalxMonitorEvent> observable);
 
