@@ -23,6 +23,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.life360.batterytestapp.google.GeocodeResponse;
 import com.life360.batterytestapp.google.GooglePlatform;
 import com.life360.falx.FalxApi;
+import com.life360.falx.monitor.FalxConstants;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -42,6 +43,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
     private GoogleMap mMap;
     private boolean logging;
+    private FalxApi falxApi;
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     @Override
@@ -53,8 +55,11 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        FalxApi.getInstance(MainActivity.this).enableLogging(true);
-        FalxApi.getInstance(this).addMonitors(FalxApi.MONITOR_APP_STATE | FalxApi.MONITOR_NETWORK | FalxApi.MONITOR_GPS);
+        falxApi = FalxApi.getInstance(MainActivity.this);
+        falxApi.enableLogging(true);
+        falxApi.addMonitors(FalxApi.MONITOR_APP_STATE | FalxApi.MONITOR_NETWORK);
+        falxApi.addOnOffMonitor(FalxConstants.MONITOR_LABEL_GPS, FalxConstants.EVENT_GPS_ON);
+        falxApi.addOnOffMonitor(FalxConstants.MONITOR_LABEL_ACTIVITY_DETECTION, FalxConstants.EVENT_ACTIVITY_DETECTION_ON);
 
         findViewById(R.id.trigger_stats).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -118,16 +123,18 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onStart() {
         super.onStart();
 
-        FalxApi.getInstance(this).startSession(this);
-        FalxApi.getInstance(this).onGpsOn();
+        falxApi.startSession(this);
+        falxApi.turnedOn(FalxConstants.MONITOR_LABEL_GPS);
+        falxApi.turnedOn(FalxConstants.MONITOR_LABEL_ACTIVITY_DETECTION);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
 
-        FalxApi.getInstance(this).endSession(this);
-        FalxApi.getInstance(this).onGpsOff();
+        falxApi.turnedOff(FalxConstants.MONITOR_LABEL_GPS);
+        falxApi.turnedOff(FalxConstants.MONITOR_LABEL_ACTIVITY_DETECTION);
+        falxApi.endSession(this);
     }
 
 

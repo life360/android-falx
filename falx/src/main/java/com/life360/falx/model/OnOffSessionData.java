@@ -3,22 +3,21 @@ package com.life360.falx.model;
 import android.text.format.DateUtils;
 
 import com.life360.falx.monitor.FalxConstants;
-import com.life360.falx.monitor.GpsState;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by Sudheer on 10/30/17.
+ * Created by Sudheer on 11/09/17.
  */
-public class GpsSessionData {
+public class OnOffSessionData {
 
     public long startTime;          // in milliseconds
     public long endTime;            // in milliseconds
     private String name;
 
-    public GpsSessionData(GpsState gpsState, long startTime, long endTime) {
-        this.name = gpsState.toString();
+    public OnOffSessionData(String name, long startTime, long endTime) {
+        this.name = name;
         this.startTime = startTime;
         this.endTime = endTime;
     }
@@ -48,7 +47,7 @@ public class GpsSessionData {
 
     @Override
     public String toString() {
-        return new StringBuilder(super.toString()).append(" startTime = ").append(startTime).append(" duration = ").append(getDuration() / 1000).toString();
+        return new StringBuilder(name).append(" startTime = ").append(startTime).append(" duration = ").append(getDuration() / 1000).toString();
     }
 
     public String getName() {

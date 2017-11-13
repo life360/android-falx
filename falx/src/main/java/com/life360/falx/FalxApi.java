@@ -15,11 +15,10 @@ import com.life360.falx.model.NetworkActivity;
 import com.life360.falx.monitor.AppState;
 import com.life360.falx.monitor.AppStateListener;
 import com.life360.falx.monitor.AppStateMonitor;
-import com.life360.falx.monitor.GpsMonitor;
-import com.life360.falx.monitor.GpsState;
-import com.life360.falx.monitor.GpsStateListener;
 import com.life360.falx.monitor.Monitor;
 import com.life360.falx.monitor.NetworkMonitor;
+import com.life360.falx.monitor.OnOffMonitor;
+import com.life360.falx.monitor.OnOffStateListener;
 import com.life360.falx.monitor_store.AggregatedFalxMonitorEvent;
 import com.life360.falx.monitor_store.FalxEventStorable;
 import com.life360.falx.network.FalxInterceptor;
@@ -46,8 +45,6 @@ public class FalxApi {
 
     public static final int MONITOR_APP_STATE = 0x01;
     public static final int MONITOR_NETWORK = 0x02;
-    public static final int MONITOR_GPS = 0x04;
-    public static final int MONITOR_GPS_LEGACY = 0x08;
 
     // .. and so on
 
@@ -88,23 +85,15 @@ public class FalxApi {
                 eventStorable.subscribeToEvents(networkMonitor.getEventObservable());
             }
         }
-
-        if ((monitorFlags & MONITOR_GPS) == MONITOR_GPS) {
-            if (!monitors.containsKey(MONITOR_GPS)) {
-                GpsMonitor gpsMonitor = new GpsMonitor(utilComponent, getGpsStateObservable());
-                monitors.put(MONITOR_GPS, gpsMonitor);
-                eventStorable.subscribeToEvents(gpsMonitor.getEventObservable());
-            }
-        }
-
-        if ((monitorFlags & MONITOR_GPS_LEGACY) == MONITOR_GPS_LEGACY) {
-            if (!monitors.containsKey(MONITOR_GPS_LEGACY)) {
-                GpsMonitor gpsMonitor = new GpsMonitor(utilComponent, getGpsLegacyStateObservable());
-                monitors.put(MONITOR_GPS_LEGACY, gpsMonitor);
-                eventStorable.subscribeToEvents(gpsMonitor.getEventObservable());
-            }
-        }
         // todo: and so on
+    }
+
+    public void addOnOffMonitor(@NonNull String monitorLabel, @NonNull String metricName) {
+        if (!onOffMonitors.containsKey(monitorLabel)) {
+            OnOffMonitor monitor = new OnOffMonitor(utilComponent, getOnOffObservable(monitorLabel), metricName, monitorLabel);
+            onOffMonitors.put(monitorLabel, monitor);
+            eventStorable.subscribeToEvents(monitor.getEventObservable());
+        }
     }
 
     public void removeAllMonitors() {
@@ -116,12 +105,23 @@ public class FalxApi {
 
             monitors.clear();
         }
+        if (!onOffMonitors.isEmpty()) {
+
+            for (Monitor monitor : onOffMonitors.values()) {
+                monitor.stop();
+            }
+
+            onOffMonitors.clear();
+        }
 
         eventStorable.clearSubscriptions();
     }
 
     public boolean isMonitorActive(int monitorId) {
         return monitors.containsKey(monitorId);
+    }
+    public boolean isMonitorActive(@NonNull String monitorLabel) {
+        return onOffMonitors.containsKey(monitorLabel);
     }
 
     /**
@@ -146,36 +146,16 @@ public class FalxApi {
         return true;
     }
 
-    public void onGpsOn() {
-        if (gpsStateListener != null) {
-            gpsStateListener.onGpsOn();
+    public void turnedOn(@NonNull String label) {
+        if (onOffListeners.containsKey(label)) {
+            onOffListeners.get(label).turnedOn();
         }
     }
 
-    public void onGpsOff() {
-        if (gpsStateListener != null) {
-            gpsStateListener.onGpsOff();
+    public void turnedOff(@NonNull String label) {
+        if (onOffListeners.containsKey(label)) {
+            onOffListeners.get(label).turnedOff();
         }
-
-    }
-
-    /*
-     * For use by legacy location code
-     */
-    public void onGpsOnLegacy() {
-        if (gpsStateListenerLegacy != null) {
-            gpsStateListenerLegacy.onGpsOn();
-        }
-    }
-
-    /*
-     * For use by legacy location code
-     */
-    public void onGpsOffLegacy() {
-        if (gpsStateListenerLegacy != null) {
-            gpsStateListenerLegacy.onGpsOff();
-        }
-
     }
 
     private static volatile FalxApi falxApi = null;
@@ -192,11 +172,7 @@ public class FalxApi {
     @Inject
     FalxEventStorable eventStorable;
 
-    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    GpsStateListener gpsStateListener;
-
-    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    GpsStateListener gpsStateListenerLegacy;
+    HashMap<String, OnOffStateListener> onOffListeners;
 
     @Inject
     Context application;        // Application application
@@ -209,6 +185,7 @@ public class FalxApi {
     // Maps MonitorId -> Monitor
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     protected HashMap<Integer, Monitor> monitors = new HashMap<>();
+    private HashMap<String, Monitor> onOffMonitors = new HashMap<>();
 
     private FalxInterceptor falxInterceptor;
     private PublishSubject<NetworkActivity> networkActivitySubject = PublishSubject.create();
@@ -250,6 +227,8 @@ public class FalxApi {
         this.utilComponent.inject(this);
 
         appStateListeners = new ArrayList<>();
+        onOffListeners = new HashMap<>();
+        onOffMonitors = new HashMap<>();
     }
 
     public void addAppStateListener(AppStateListener listener) {
@@ -330,56 +309,27 @@ public class FalxApi {
         });
     }
 
-    @VisibleForTesting
-    Observable<GpsState> getGpsStateObservable() {
-        return Observable.create(new ObservableOnSubscribe<GpsState>() {
-
+    Observable<Boolean> getOnOffObservable(final String monitorLabel) {
+        return Observable.create(new ObservableOnSubscribe<Boolean>() {
             @Override
-            public void subscribe(@io.reactivex.annotations.NonNull final ObservableEmitter<GpsState> gpsStateEmitter) throws Exception {
-                gpsStateListener = new GpsStateListener() {
+            public void subscribe(final ObservableEmitter<Boolean> emitter) throws Exception {
+                OnOffStateListener onOffListener = new OnOffStateListener() {
 
                     @Override
-                    public void onGpsOn() {
-                        gpsStateEmitter.onNext(GpsState.ON);
+                    public void turnedOn() {
+                        emitter.onNext(true);
                     }
 
                     @Override
-                    public void onGpsOff() {
-                        gpsStateEmitter.onNext(GpsState.OFF);
+                    public void turnedOff() {
+                        emitter.onNext(false);
                     }
                 };
-                gpsStateEmitter.setCancellable(new Cancellable() {
+                onOffListeners.put(monitorLabel, onOffListener);
+                emitter.setCancellable(new Cancellable() {
                     @Override
                     public void cancel() throws Exception {
-                        gpsStateListener = null;
-                    }
-                });
-            }
-        });
-    }
-
-    @VisibleForTesting
-    Observable<GpsState> getGpsLegacyStateObservable() {
-        return Observable.create(new ObservableOnSubscribe<GpsState>() {
-
-            @Override
-            public void subscribe(@io.reactivex.annotations.NonNull final ObservableEmitter<GpsState> gpsStateEmitter) throws Exception {
-                gpsStateListenerLegacy = new GpsStateListener() {
-
-                    @Override
-                    public void onGpsOn() {
-                        gpsStateEmitter.onNext(GpsState.ON);
-                    }
-
-                    @Override
-                    public void onGpsOff() {
-                        gpsStateEmitter.onNext(GpsState.OFF);
-                    }
-                };
-                gpsStateEmitter.setCancellable(new Cancellable() {
-                    @Override
-                    public void cancel() throws Exception {
-                        gpsStateListenerLegacy = null;
+                        onOffListeners.remove(monitorLabel);
                     }
                 });
             }
