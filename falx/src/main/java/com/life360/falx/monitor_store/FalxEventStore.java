@@ -85,6 +85,8 @@ public class FalxEventStore implements FalxEventStorable {
         realm.beginTransaction();
         realm.copyToRealm(entity);
         realm.commitTransaction();
+
+        realm.close();
     }
 
     @Override
@@ -108,6 +110,8 @@ public class FalxEventStore implements FalxEventStorable {
                 olderEvents.deleteAllFromRealm();
             }
         });
+
+        realm.close();
     }
 
     @Override
@@ -191,6 +195,7 @@ public class FalxEventStore implements FalxEventStorable {
                     aggregatedFalxEvents);
         }
 
+        realm.close();
         return aggregatedFalxEvents;
     }
 
@@ -241,6 +246,8 @@ public class FalxEventStore implements FalxEventStorable {
             }
         });
 
+        realm.close();
+
         return aggregatedEvent;
 
     }
@@ -282,6 +289,9 @@ public class FalxEventStore implements FalxEventStorable {
         }
         this.setSyncDate(new Date());
         this.deleteOldEvents();
+
+        realm.close();
+
         return allEvents;
     }
 
@@ -300,7 +310,9 @@ public class FalxEventStore implements FalxEventStorable {
         RealmResults<FalxEventEntity> allRealmEvents = realm.where(FalxEventEntity.class)
                 .findAllSorted(FalxEventEntity.KEY_TIMESTAMP, Sort.ASCENDING);
 
+
         if (allRealmEvents.size() <= 0) {
+            realm.close();
             return null;
         }
 
@@ -320,11 +332,13 @@ public class FalxEventStore implements FalxEventStorable {
                 }
             } catch (JSONException e) {
                 Log.d(TAG, e.getMessage());
+                realm.close();
                 return null;
             }
 
             jsonEvents.put(jsonObject);
         }
+
         FileOutputStream fileOutputStream = null;
         try {
             fileOutputStream = new FileOutputStream(jsonFile, false);
@@ -341,10 +355,12 @@ public class FalxEventStore implements FalxEventStorable {
                     fileOutputStream.close();
                 } catch (IOException e) {
                     Log.d(TAG, e.getMessage());
+                    realm.close();
                     return null;
                 }
         }
 
+        realm.close();
         return jsonFile.toURI();
     }
 
@@ -381,5 +397,7 @@ public class FalxEventStore implements FalxEventStorable {
         for (FalxEventEntity entity : entities) {
             Log.d(TAG, entity.toString() + "----" + entity.getArguments().toString());
         }
+
+        realm.close();
     }
 }
