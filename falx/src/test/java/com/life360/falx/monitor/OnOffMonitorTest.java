@@ -30,6 +30,13 @@ import io.reactivex.observers.TestObserver;
 @RunWith(MockitoJUnitRunner.class)
 public class OnOffMonitorTest {
 
+    public static final String MONITOR_LABEL_GPS = "GPS";
+
+    /* Monitor for use by the legacy location code */
+    public static final String MONITOR_LABEL_ACTIVITY_DETECTION = "ActivityDetection";
+
+    public static final String EVENT_ACTIVITY_DETECTION_ON = "activities-on";
+    public static final String EVENT_GPS_ON = "gps-on";
     @Mock
     Context mockContext;
 
@@ -45,7 +52,7 @@ public class OnOffMonitorTest {
                 .testLoggerModule(new TestLoggerModule())
                 .build();
 
-        OnOffMonitor monitor = new OnOffMonitor(testUtilComponent, stateObservable(), FalxConstants.EVENT_GPS_ON, FalxConstants.MONITOR_LABEL_GPS);
+        OnOffMonitor monitor = new OnOffMonitor(testUtilComponent, stateObservable(), EVENT_GPS_ON, MONITOR_LABEL_GPS);
 
         TestObserver<FalxMonitorEvent> testObserver = monitor.getEventObservable().test();
         TestClock testClock = (TestClock) monitor.clock;
@@ -64,7 +71,7 @@ public class OnOffMonitorTest {
         monitor.turnedOff();
 
         FalxMonitorEvent event = testObserver.values().get(0);
-        Assert.assertEquals(FalxConstants.EVENT_GPS_ON, event.getName());
+        Assert.assertEquals(EVENT_GPS_ON, event.getName());
         Assert.assertEquals(currentTime - startTime, (long)(event.getArguments().get(FalxConstants.PROP_DURATION) * DateUtils.SECOND_IN_MILLIS));
         monitor.stop();
     }
@@ -80,8 +87,8 @@ public class OnOffMonitorTest {
                 .testLoggerModule(new TestLoggerModule())
                 .build();
 
-        OnOffMonitor gpsMonitor = new OnOffMonitor(testUtilComponent, stateObservable(), FalxConstants.EVENT_GPS_ON, FalxConstants.MONITOR_LABEL_GPS);
-        OnOffMonitor activitiesMonitor = new OnOffMonitor(testUtilComponent, stateObservable(), FalxConstants.EVENT_ACTIVITY_DETECTION_ON, FalxConstants.MONITOR_LABEL_ACTIVITY_DETECTION);
+        OnOffMonitor gpsMonitor = new OnOffMonitor(testUtilComponent, stateObservable(), EVENT_GPS_ON, MONITOR_LABEL_GPS);
+        OnOffMonitor activitiesMonitor = new OnOffMonitor(testUtilComponent, stateObservable(), EVENT_ACTIVITY_DETECTION_ON, MONITOR_LABEL_ACTIVITY_DETECTION);
 
         TestObserver<FalxMonitorEvent> gpsObserver = gpsMonitor.getEventObservable().test();
         TestObserver<FalxMonitorEvent> activitiesObserver = activitiesMonitor.getEventObservable().test();
@@ -107,7 +114,7 @@ public class OnOffMonitorTest {
         gpsMonitor.turnedOff();
 
         FalxMonitorEvent event = gpsObserver.values().get(0);
-        Assert.assertEquals(FalxConstants.EVENT_GPS_ON, event.getName());
+        Assert.assertEquals(EVENT_GPS_ON, event.getName());
         Assert.assertEquals(currentTime - startTime, (long)(event.getArguments().get(FalxConstants.PROP_DURATION) * DateUtils.SECOND_IN_MILLIS));
         gpsMonitor.stop();
 
@@ -117,7 +124,7 @@ public class OnOffMonitorTest {
         activitiesMonitor.turnedOff();
 
         event = activitiesObserver.values().get(0);
-        Assert.assertEquals(FalxConstants.EVENT_ACTIVITY_DETECTION_ON, event.getName());
+        Assert.assertEquals(EVENT_ACTIVITY_DETECTION_ON, event.getName());
         Assert.assertEquals(currentTime - activitiesStartTime, (long)(event.getArguments().get(FalxConstants.PROP_DURATION) * DateUtils.SECOND_IN_MILLIS));
         activitiesMonitor.stop();
 
@@ -130,7 +137,7 @@ public class OnOffMonitorTest {
                 .fakeDateTimeModule(new FakeDateTimeModule())
                 .build();
 
-        OnOffMonitor monitor = new OnOffMonitor(testUtilComponent, stateObservable(), FalxConstants.EVENT_GPS_ON, FalxConstants.MONITOR_LABEL_GPS);
+        OnOffMonitor monitor = new OnOffMonitor(testUtilComponent, stateObservable(), EVENT_GPS_ON, MONITOR_LABEL_GPS);
         TestObserver<FalxMonitorEvent> testObserver = monitor.getEventObservable().test();
 
         TestClock testClock = (TestClock) monitor.clock;
@@ -159,7 +166,7 @@ public class OnOffMonitorTest {
         monitor.turnedOff();
 
         FalxMonitorEvent event = testObserver.values().get(0);
-        Assert.assertEquals(FalxConstants.EVENT_GPS_ON, event.getName());
+        Assert.assertEquals(EVENT_GPS_ON, event.getName());
         Assert.assertEquals(currentTime - secondSessionStartTime, (long)(event.getArguments().get(FalxConstants.PROP_DURATION) * DateUtils.SECOND_IN_MILLIS));
 
         testClock.setCurrentTimeMillis(currentTime);
@@ -173,7 +180,7 @@ public class OnOffMonitorTest {
         monitor.turnedOff();
 
         event = testObserver.values().get(0);
-        Assert.assertEquals(FalxConstants.EVENT_GPS_ON, event.getName());
+        Assert.assertEquals(EVENT_GPS_ON, event.getName());
         Assert.assertEquals(currentTime - thirdSessionStartTime, (long)(event.getArguments().get(FalxConstants.PROP_DURATION) * DateUtils.SECOND_IN_MILLIS));
 
         monitor.stop();
@@ -186,7 +193,7 @@ public class OnOffMonitorTest {
                 .fakeDateTimeModule(new FakeDateTimeModule())
                 .build();
 
-        OnOffMonitor monitor = new OnOffMonitor(testUtilComponent, stateObservable(), FalxConstants.EVENT_GPS_ON, FalxConstants.MONITOR_LABEL_GPS);
+        OnOffMonitor monitor = new OnOffMonitor(testUtilComponent, stateObservable(), EVENT_GPS_ON, MONITOR_LABEL_GPS);
         TestObserver<FalxMonitorEvent> testObserver = monitor.getEventObservable().test();
 
         TestClock testClock = (TestClock) monitor.clock;
@@ -201,7 +208,7 @@ public class OnOffMonitorTest {
         monitor.turnedOff();
 
         FalxMonitorEvent event = testObserver.values().get(0);
-        Assert.assertEquals(FalxConstants.EVENT_GPS_ON, event.getName());
+        Assert.assertEquals(EVENT_GPS_ON, event.getName());
         Assert.assertEquals(0, (long)(event.getArguments().get(FalxConstants.PROP_DURATION) * DateUtils.SECOND_IN_MILLIS));
 
     }

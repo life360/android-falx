@@ -15,6 +15,14 @@
         android:layout_alignParentRight="true"
         android:background="@android:drawable/btn_default"
         android:text="!Log" />
+    <Button
+        android:id="@+id/trigger_realtime_event"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_below="@id/trigger_logging"
+        android:background="@android:drawable/btn_default"
+        android:text="RTMsg" />
 
     <Button
         android:id="@+id/get_events_json"

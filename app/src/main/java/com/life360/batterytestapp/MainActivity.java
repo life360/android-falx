@@ -23,6 +23,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.life360.batterytestapp.google.GeocodeResponse;
 import com.life360.batterytestapp.google.GooglePlatform;
 import com.life360.falx.FalxApi;
+import com.life360.falx.model.RealtimeMessagingActivity;
 import com.life360.falx.monitor.FalxConstants;
 
 import java.io.BufferedReader;
@@ -32,6 +33,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -40,6 +42,12 @@ import retrofit2.Response;
 import static android.app.job.JobInfo.NETWORK_TYPE_ANY;
 
 public class MainActivity extends FragmentActivity implements OnMapReadyCallback {
+
+
+    public static final String MONITOR_LABEL_GPS = "GPS";
+    public static final String EVENT_GPS_ON = "gps-on";
+    public static final String EVENT_ACTIVITY_DETECTION_ON = "activities-on";
+    public static final String MONITOR_LABEL_ACTIVITY_DETECTION = "ActivityDetection";
 
     private GoogleMap mMap;
     private boolean logging;
@@ -57,9 +65,9 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
         falxApi = FalxApi.getInstance(MainActivity.this);
         falxApi.enableLogging(true);
-        falxApi.addMonitors(FalxApi.MONITOR_APP_STATE | FalxApi.MONITOR_NETWORK);
-        falxApi.addOnOffMonitor(FalxConstants.MONITOR_LABEL_GPS, FalxConstants.EVENT_GPS_ON);
-        falxApi.addOnOffMonitor(FalxConstants.MONITOR_LABEL_ACTIVITY_DETECTION, FalxConstants.EVENT_ACTIVITY_DETECTION_ON);
+        falxApi.addMonitors(FalxApi.MONITOR_APP_STATE | FalxApi.MONITOR_NETWORK | FalxApi.MONITOR_REALTIME_MESSAGING);
+        falxApi.addOnOffMonitor(MONITOR_LABEL_GPS, EVENT_GPS_ON);
+        falxApi.addOnOffMonitor(MONITOR_LABEL_ACTIVITY_DETECTION, EVENT_ACTIVITY_DETECTION_ON);
 
         findViewById(R.id.trigger_stats).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -67,6 +75,16 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 Log.d("rk-dbg", "Test aggregate data query...");
 
                 BatteryStatReporter.sendLogs(MainActivity.this);
+            }
+        });
+
+        findViewById(R.id.trigger_realtime_event).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Random random = new Random();
+                int bytes = random.nextInt(10000);
+                RealtimeMessagingActivity rtActivity = new RealtimeMessagingActivity(1, bytes, "mqtt");
+                falxApi.realtimeMessageReceived(rtActivity);
             }
         });
 
@@ -124,16 +142,16 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         super.onStart();
 
         falxApi.startSession(this);
-        falxApi.turnedOn(FalxConstants.MONITOR_LABEL_GPS);
-        falxApi.turnedOn(FalxConstants.MONITOR_LABEL_ACTIVITY_DETECTION);
+        falxApi.turnedOn(MONITOR_LABEL_GPS);
+        falxApi.turnedOn(MONITOR_LABEL_ACTIVITY_DETECTION);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
 
-        falxApi.turnedOff(FalxConstants.MONITOR_LABEL_GPS);
-        falxApi.turnedOff(FalxConstants.MONITOR_LABEL_ACTIVITY_DETECTION);
+        falxApi.turnedOff(MONITOR_LABEL_GPS);
+        falxApi.turnedOff(MONITOR_LABEL_ACTIVITY_DETECTION);
         falxApi.endSession(this);
     }
 
