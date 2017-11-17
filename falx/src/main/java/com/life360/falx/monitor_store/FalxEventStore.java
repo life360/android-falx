@@ -220,7 +220,7 @@ public class FalxEventStore implements FalxEventStorable {
 
     private AggregatedFalxMonitorEvent createAggregatedEvents(final RealmList<FalxEventEntity> events,
                                                               Map<String, Double> aggregatedArguments,
-                                                              Date timestamp) {
+                                                              long timestamp) {
         if (events == null || events.size() == 0) {
             return null;
         }
@@ -266,7 +266,7 @@ public class FalxEventStore implements FalxEventStorable {
         Date startOfDay = cal.getTime();
 
         AggregatedFalxMonitorEvent aggregatedFalxMonitorEvent =
-                createAggregatedEvents(processedEvents, aggregatedArguments, startOfDay);
+                createAggregatedEvents(processedEvents, aggregatedArguments, startOfDay.getTime());
 
         if (aggregatedFalxMonitorEvent != null) {
             aggregatedFalxEvents.add(aggregatedFalxMonitorEvent);

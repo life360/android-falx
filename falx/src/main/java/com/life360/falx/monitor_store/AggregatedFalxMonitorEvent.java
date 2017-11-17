@@ -16,41 +16,19 @@ public class AggregatedFalxMonitorEvent {
 
     public static final String DURATION = "duration";
     public static final String COUNT = "count";
+    public static final String BYTES_RECEIVED = "bytesReceived";
     public static final String TIMESTAMP = "timestamp";
     private String name;
-    private Map<String, Double> arguments = new HashMap<>();
+    protected Map<String, Double> arguments = new HashMap<>();
 
-    public AggregatedFalxMonitorEvent(String name, int count, Date timestamp) {
+    public AggregatedFalxMonitorEvent(String name, int count, long timestamp) {
         this.name = name;
         this.arguments.put(AggregatedFalxMonitorEvent.COUNT, new Double(count));
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(timestamp);
-        this.arguments.put(AggregatedFalxMonitorEvent.TIMESTAMP, new Double(cal.getTimeInMillis()));
+        this.arguments.put(AggregatedFalxMonitorEvent.TIMESTAMP, new Double(timestamp));
     }
 
     public String getName() {
         return name;
-    }
-
-    public Double getDuration() {
-        if (this.arguments.containsKey(AggregatedFalxMonitorEvent.DURATION)) {
-            return this.arguments.get(AggregatedFalxMonitorEvent.DURATION);
-        }
-        return 0.0;
-    }
-
-    public Double getCount() {
-        if (this.arguments.containsKey(AggregatedFalxMonitorEvent.COUNT)) {
-            return this.arguments.get(AggregatedFalxMonitorEvent.COUNT);
-        }
-        return 0.0;
-    }
-
-    public Double getTimestamp() {
-        if (this.arguments.containsKey(AggregatedFalxMonitorEvent.TIMESTAMP)) {
-            return this.arguments.get(AggregatedFalxMonitorEvent.TIMESTAMP);
-        }
-        return 0.0;
     }
 
     /**
@@ -60,9 +38,14 @@ public class AggregatedFalxMonitorEvent {
     public JSONObject getParamsAsJson() throws JSONException {
         JSONObject object = new JSONObject();
 
-        object.put(COUNT, getCount());
-        object.put(TIMESTAMP, getTimestamp());
-        object.put(DURATION, getDuration());
+        for (String key : arguments.keySet()) {
+            Double value = arguments.get(key);
+            if (value == null) {
+                value = 0.0;
+            }
+
+            object.put(key, value);
+        }
 
         return object;
     }
