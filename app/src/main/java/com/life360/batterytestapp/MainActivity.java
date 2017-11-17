@@ -25,6 +25,7 @@ import com.life360.batterytestapp.google.GooglePlatform;
 import com.life360.falx.FalxApi;
 import com.life360.falx.model.RealtimeMessagingActivity;
 import com.life360.falx.monitor.FalxConstants;
+import com.life360.falx.monitor.RealtimeMessagingSession;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -52,6 +53,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleMap mMap;
     private boolean logging;
     private FalxApi falxApi;
+    private long sessionStartTime;
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     @Override
@@ -83,7 +85,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             public void onClick(View v) {
                 Random random = new Random();
                 int bytes = random.nextInt(10000);
-                RealtimeMessagingActivity rtActivity = new RealtimeMessagingActivity(1, bytes, "mqtt");
+                RealtimeMessagingActivity rtActivity = new RealtimeMessagingActivity(1,  bytes, "mqtt");
                 falxApi.realtimeMessageReceived(rtActivity);
             }
         });
@@ -141,6 +143,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onStart() {
         super.onStart();
 
+        sessionStartTime = System.currentTimeMillis();
         falxApi.startSession(this);
         falxApi.turnedOn(MONITOR_LABEL_GPS);
         falxApi.turnedOn(MONITOR_LABEL_ACTIVITY_DETECTION);
@@ -153,6 +156,11 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         falxApi.turnedOff(MONITOR_LABEL_GPS);
         falxApi.turnedOff(MONITOR_LABEL_ACTIVITY_DETECTION);
         falxApi.endSession(this);
+
+        // Test FalxApi.realtimeMessageSessionCompleted()
+        long sessionDuration = System.currentTimeMillis() - sessionStartTime;
+        RealtimeMessagingSession session = new RealtimeMessagingSession(5, sessionDuration, 5, 10000, 1);
+        falxApi.realtimeMessageSessionCompleted(session);
     }
 
 

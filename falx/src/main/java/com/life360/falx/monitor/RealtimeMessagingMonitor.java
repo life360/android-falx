@@ -33,12 +33,18 @@ public class RealtimeMessagingMonitor extends Monitor {
     protected Disposable rtMessagingDisposable;
 
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    protected Disposable rtMessagingSessionDisposable;
+
+    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     @Inject
     Clock clock;
 
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     @Inject
     Logger logger;
+
+    private long startTime;
+
 
     public static UtilComponent createDaggerComponent() {
         return DaggerUtilComponent.builder()
@@ -48,12 +54,15 @@ public class RealtimeMessagingMonitor extends Monitor {
                 .build();
     }
 
-    public RealtimeMessagingMonitor(@NonNull Observable<RealtimeMessagingActivity> rtDataObservable) {
-        this(createDaggerComponent(), rtDataObservable);
+    public RealtimeMessagingMonitor(@NonNull Observable<RealtimeMessagingActivity> rtDataObservable,
+                                    @NonNull Observable<RealtimeMessagingSession> rtMessagingSessionObservable) {
+        this(createDaggerComponent(), rtDataObservable, rtMessagingSessionObservable);
 
     }
 
-    public RealtimeMessagingMonitor(@NonNull UtilComponent utilComponent, @NonNull Observable<RealtimeMessagingActivity> rtMessagingObservable) {
+    public RealtimeMessagingMonitor(@NonNull UtilComponent utilComponent,
+                                    @NonNull Observable<RealtimeMessagingActivity> rtMessagingObservable,
+                                    @NonNull Observable<RealtimeMessagingSession> rtMessagingSessionObservable) {
         utilComponent.inject(this);
 
         rtMessagingDisposable = rtMessagingObservable
@@ -67,7 +76,20 @@ public class RealtimeMessagingMonitor extends Monitor {
                         saveToDataStore(rtMessagingActivity);
                     }
                 });
+
+        rtMessagingSessionDisposable = rtMessagingSessionObservable
+                .observeOn(Schedulers.single())
+                .subscribe(new Consumer<RealtimeMessagingSession>() {
+
+                    @Override
+                    public void accept(RealtimeMessagingSession rtMessagingSession) throws Exception {
+                        logger.d(Logger.TAG, "Real time data Session: " + rtMessagingSession.toString());
+
+                        saveToDataStore(rtMessagingSession);
+                    }
+                });
     }
+
 
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     protected void saveToDataStore(RealtimeMessagingActivity activity) {
@@ -78,6 +100,16 @@ public class RealtimeMessagingMonitor extends Monitor {
         eventPublishSubject.onNext(new FalxMonitorEvent(FalxConstants.EVENT_REALTIME_MESSAGING, args));
     }
 
+    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    protected void saveToDataStore(RealtimeMessagingSession session) {
+        HashMap<String, Double> args = new HashMap<>();
+        args.put(FalxConstants.PROP_COUNT, 1.0D);
+        args.put(FalxConstants.PROP_DURATION, new Double(session.sessionDuration));
+        args.put(FalxConstants.PROP_BYTES_RECEIVED, new Double(session.totalBytesReceived));
+
+        eventPublishSubject.onNext(new FalxMonitorEvent(FalxConstants.EVENT_REALTIME_MESSAGING_SESSION, args));
+    }
+
     @Override
     public void stop() {
         super.stop();
@@ -85,6 +117,10 @@ public class RealtimeMessagingMonitor extends Monitor {
         if (!rtMessagingDisposable.isDisposed()) {
             rtMessagingDisposable.dispose();
             logger.d(TAG, "stop: disposed rtMessagingDisposable");
+        }
+        if (!rtMessagingSessionDisposable.isDisposed()) {
+            rtMessagingSessionDisposable.dispose();
+            logger.d(TAG, "stop: disposed rtMessagingSessionDisposable");
         }
     }
 

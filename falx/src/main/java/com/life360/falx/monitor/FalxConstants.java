@@ -11,6 +11,7 @@ public class FalxConstants {
     public static final String EVENT_BACKGROUND = "background";
     public static final String EVENT_NETWORK = "falx-network";
     public static final String EVENT_REALTIME_MESSAGING = "falx-realtime-messaging";
+    public static final String EVENT_REALTIME_MESSAGING_SESSION = "falx-realtime-messaging-session";
 
     // Event property names
     public static final String PROP_DURATION = "duration";

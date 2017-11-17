@@ -21,6 +21,7 @@ import com.life360.falx.monitor.NetworkMonitor;
 import com.life360.falx.monitor.OnOffMonitor;
 import com.life360.falx.monitor.OnOffStateListener;
 import com.life360.falx.monitor.RealtimeMessagingMonitor;
+import com.life360.falx.monitor.RealtimeMessagingSession;
 import com.life360.falx.monitor_store.AggregatedFalxMonitorEvent;
 import com.life360.falx.monitor_store.FalxEventStorable;
 import com.life360.falx.network.FalxInterceptor;
@@ -30,7 +31,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 import javax.inject.Inject;
 
@@ -92,7 +92,7 @@ public class FalxApi {
 
         if ((monitorFlags & MONITOR_REALTIME_MESSAGING) == MONITOR_REALTIME_MESSAGING) {
             if (!monitors.containsKey(MONITOR_REALTIME_MESSAGING)) {
-                RealtimeMessagingMonitor realtimeMessagingMonitor = new RealtimeMessagingMonitor(utilComponent, getRealtimeMessagingObservable());
+                RealtimeMessagingMonitor realtimeMessagingMonitor = new RealtimeMessagingMonitor(utilComponent, getRealtimeMessagingObservable(), getRealtimeMessagingSessionObservable());
                 monitors.put(MONITOR_REALTIME_MESSAGING, realtimeMessagingMonitor);
                 eventStorable.subscribeToEvents(realtimeMessagingMonitor.getEventObservable());
             }
@@ -171,7 +171,7 @@ public class FalxApi {
     }
 
     /**
-     * Call to log a event describing the receipt of a real-time message.
+     * Call to log an event describing the receipt of a real-time message.
      * @param activity
      */
     public void realtimeMessageReceived(final RealtimeMessagingActivity activity) {
@@ -182,6 +182,18 @@ public class FalxApi {
         }
     }
 
+    /**
+     * Call to log an event to log data for a real-time messaging session.
+     * @param session
+     */
+    public void realtimeMessageSessionCompleted(final RealtimeMessagingSession session) {
+        if (isMonitorActive(MONITOR_REALTIME_MESSAGING)) {
+            realtimeMessagingSessionObservable.onNext(session);
+        } else {
+            logger.e(Logger.TAG, "MONITOR_REALTIME_MESSAGING is not active!");
+        }
+
+    }
 
     private static volatile FalxApi falxApi = null;
 
@@ -215,6 +227,7 @@ public class FalxApi {
     private FalxInterceptor falxInterceptor;
     private PublishSubject<NetworkActivity> networkActivitySubject = PublishSubject.create();
     private PublishSubject<RealtimeMessagingActivity> realtimeMessagingObservable = PublishSubject.create();
+    private PublishSubject<RealtimeMessagingSession> realtimeMessagingSessionObservable = PublishSubject.create();
 
     private FalxApi(@NonNull Context context) {
         // Create our UtilComponent module, since it will be only used by FalxApi
@@ -371,6 +384,10 @@ public class FalxApi {
 
     public Observable<RealtimeMessagingActivity> getRealtimeMessagingObservable() {
         return realtimeMessagingObservable;
+    }
+
+    public Observable<RealtimeMessagingSession> getRealtimeMessagingSessionObservable() {
+        return realtimeMessagingSessionObservable;
     }
 
     /**
