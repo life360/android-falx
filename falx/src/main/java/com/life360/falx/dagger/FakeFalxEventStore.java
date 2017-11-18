@@ -74,7 +74,7 @@ public class FakeFalxEventStore implements FalxEventStorable {
 
     private AggregatedFalxMonitorEvent createAggregatedEvents(final RealmList<FalxEventEntity> events,
                                                               Map<String, Double> aggregatedArguments,
-                                                              Date timestamp) {
+                                                              long timestamp) {
         if (events == null || events.size() == 0) {
             return null;
         }

@@ -204,14 +204,14 @@ public class FalxEventStore implements FalxEventStorable {
                                        Map<String, Double> aggregatedArguments) {
         processedEvents.add(currentEntity);
 
-        Map<String, Double> currentAruments = currentEntity.getArguments();
+        Map<String, Double> currentArguments = currentEntity.getArguments();
 
-        for (String key : currentAruments.keySet()) {
+        for (String key : currentArguments.keySet()) {
             if (!key.contains(FALX_URL_PREFIX)) {
                 if (aggregatedArguments.containsKey(key)) {
-                    aggregatedArguments.put(key, aggregatedArguments.get(key) + currentAruments.get(key));
+                    aggregatedArguments.put(key, aggregatedArguments.get(key) + currentArguments.get(key));
                 } else {
-                    aggregatedArguments.put(key, currentAruments.get(key));
+                    aggregatedArguments.put(key, currentArguments.get(key));
                 }
             }
         }
@@ -220,7 +220,7 @@ public class FalxEventStore implements FalxEventStorable {
 
     private AggregatedFalxMonitorEvent createAggregatedEvents(final RealmList<FalxEventEntity> events,
                                                               Map<String, Double> aggregatedArguments,
-                                                              Date timestamp) {
+                                                              long timestamp) {
         if (events == null || events.size() == 0) {
             return null;
         }
@@ -266,7 +266,7 @@ public class FalxEventStore implements FalxEventStorable {
         Date startOfDay = cal.getTime();
 
         AggregatedFalxMonitorEvent aggregatedFalxMonitorEvent =
-                createAggregatedEvents(processedEvents, aggregatedArguments, startOfDay);
+                createAggregatedEvents(processedEvents, aggregatedArguments, startOfDay.getTime());
 
         if (aggregatedFalxMonitorEvent != null) {
             aggregatedFalxEvents.add(aggregatedFalxMonitorEvent);

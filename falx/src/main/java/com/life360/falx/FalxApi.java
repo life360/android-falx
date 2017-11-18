@@ -12,6 +12,7 @@ import com.life360.falx.dagger.FalxStoreModule;
 import com.life360.falx.dagger.LoggerModule;
 import com.life360.falx.dagger.UtilComponent;
 import com.life360.falx.model.NetworkActivity;
+import com.life360.falx.model.RealtimeMessagingActivity;
 import com.life360.falx.monitor.AppState;
 import com.life360.falx.monitor.AppStateListener;
 import com.life360.falx.monitor.AppStateMonitor;
@@ -19,6 +20,8 @@ import com.life360.falx.monitor.Monitor;
 import com.life360.falx.monitor.NetworkMonitor;
 import com.life360.falx.monitor.OnOffMonitor;
 import com.life360.falx.monitor.OnOffStateListener;
+import com.life360.falx.monitor.RealtimeMessagingMonitor;
+import com.life360.falx.monitor.RealtimeMessagingSession;
 import com.life360.falx.monitor_store.AggregatedFalxMonitorEvent;
 import com.life360.falx.monitor_store.FalxEventStorable;
 import com.life360.falx.network.FalxInterceptor;
@@ -45,6 +48,7 @@ public class FalxApi {
 
     public static final int MONITOR_APP_STATE = 0x01;
     public static final int MONITOR_NETWORK = 0x02;
+    public static final int MONITOR_REALTIME_MESSAGING = 0x03;
 
     // .. and so on
 
@@ -83,6 +87,14 @@ public class FalxApi {
                 NetworkMonitor networkMonitor = new NetworkMonitor(utilComponent, getNetworkActivityObservable());
                 monitors.put(MONITOR_NETWORK, networkMonitor);
                 eventStorable.subscribeToEvents(networkMonitor.getEventObservable());
+            }
+        }
+
+        if ((monitorFlags & MONITOR_REALTIME_MESSAGING) == MONITOR_REALTIME_MESSAGING) {
+            if (!monitors.containsKey(MONITOR_REALTIME_MESSAGING)) {
+                RealtimeMessagingMonitor realtimeMessagingMonitor = new RealtimeMessagingMonitor(utilComponent, getRealtimeMessagingObservable(), getRealtimeMessagingSessionObservable());
+                monitors.put(MONITOR_REALTIME_MESSAGING, realtimeMessagingMonitor);
+                eventStorable.subscribeToEvents(realtimeMessagingMonitor.getEventObservable());
             }
         }
         // todo: and so on
@@ -158,6 +170,31 @@ public class FalxApi {
         }
     }
 
+    /**
+     * Call to log an event describing the receipt of a real-time message.
+     * @param activity
+     */
+    public void realtimeMessageReceived(final RealtimeMessagingActivity activity) {
+        if (isMonitorActive(MONITOR_REALTIME_MESSAGING)) {
+            realtimeMessagingObservable.onNext(activity);
+        } else {
+            logger.e(Logger.TAG, "MONITOR_REALTIME_MESSAGING is not active!");
+        }
+    }
+
+    /**
+     * Call to log an event to log data for a real-time messaging session.
+     * @param session
+     */
+    public void realtimeMessageSessionCompleted(final RealtimeMessagingSession session) {
+        if (isMonitorActive(MONITOR_REALTIME_MESSAGING)) {
+            realtimeMessagingSessionObservable.onNext(session);
+        } else {
+            logger.e(Logger.TAG, "MONITOR_REALTIME_MESSAGING is not active!");
+        }
+
+    }
+
     private static volatile FalxApi falxApi = null;
 
 
@@ -189,7 +226,8 @@ public class FalxApi {
 
     private FalxInterceptor falxInterceptor;
     private PublishSubject<NetworkActivity> networkActivitySubject = PublishSubject.create();
-
+    private PublishSubject<RealtimeMessagingActivity> realtimeMessagingObservable = PublishSubject.create();
+    private PublishSubject<RealtimeMessagingSession> realtimeMessagingSessionObservable = PublishSubject.create();
 
     private FalxApi(@NonNull Context context) {
         // Create our UtilComponent module, since it will be only used by FalxApi
@@ -344,6 +382,14 @@ public class FalxApi {
         return networkActivitySubject;
     }
 
+    public Observable<RealtimeMessagingActivity> getRealtimeMessagingObservable() {
+        return realtimeMessagingObservable;
+    }
+
+    public Observable<RealtimeMessagingSession> getRealtimeMessagingSessionObservable() {
+        return realtimeMessagingSessionObservable;
+    }
+
     /**
      * get aggregated events for the provided event
      *
@@ -396,4 +442,5 @@ public class FalxApi {
         }
         return null;
     }
+
 }
