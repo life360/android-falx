@@ -204,14 +204,14 @@ public class FalxEventStore implements FalxEventStorable {
                                        Map<String, Double> aggregatedArguments) {
         processedEvents.add(currentEntity);
 
-        Map<String, Double> currentAruments = currentEntity.getArguments();
+        Map<String, Double> currentArguments = currentEntity.getArguments();
 
-        for (String key : currentAruments.keySet()) {
+        for (String key : currentArguments.keySet()) {
             if (!key.contains(FALX_URL_PREFIX)) {
                 if (aggregatedArguments.containsKey(key)) {
-                    aggregatedArguments.put(key, aggregatedArguments.get(key) + currentAruments.get(key));
+                    aggregatedArguments.put(key, aggregatedArguments.get(key) + currentArguments.get(key));
                 } else {
-                    aggregatedArguments.put(key, currentAruments.get(key));
+                    aggregatedArguments.put(key, currentArguments.get(key));
                 }
             }
         }

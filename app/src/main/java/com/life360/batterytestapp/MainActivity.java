@@ -32,6 +32,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
@@ -159,7 +160,10 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
         // Test FalxApi.realtimeMessageSessionCompleted()
         long sessionDuration = System.currentTimeMillis() - sessionStartTime;
-        RealtimeMessagingSession session = new RealtimeMessagingSession(5, sessionDuration, 5, 10000, 1);
+        HashMap<String, Double> extras = new HashMap<>();
+        extras.put("numTopics", 1.0D);
+        extras.put("connectTime", 5.0D);
+        RealtimeMessagingSession session = new RealtimeMessagingSession(sessionDuration, 1, extras);
         falxApi.realtimeMessageSessionCompleted(session);
     }
 

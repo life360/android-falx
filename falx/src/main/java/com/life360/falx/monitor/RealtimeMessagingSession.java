@@ -1,25 +1,36 @@
 package com.life360.falx.monitor;
 
 
+import android.support.annotation.Nullable;
+
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Note: Todo generate a Builder
  * Created by remon on 11/17/17.
  */
 
 public class RealtimeMessagingSession {
-    // Note: Not all of these values will be reported with the current design for Falx Events
-
-    long connectTime;
     long sessionDuration;
     int numMessagesReceived;
-    long totalBytesReceived;
-    int numTopicsRequested;
+    HashMap<String, Double> extras;
 
-    public RealtimeMessagingSession(long connectTime, long sessionDuration, int numMessagesReceived, long totalBytesReceived, int numTopicsRequested) {
-        this.connectTime = connectTime;
+    public RealtimeMessagingSession(long sessionDuration, int numMessagesReceived, @Nullable Map<String, Double> extras) {
         this.sessionDuration = sessionDuration;
         this.numMessagesReceived = numMessagesReceived;
-        this.totalBytesReceived = totalBytesReceived;
-        this.numTopicsRequested = numTopicsRequested;
+
+        if (extras != null) {
+            this.extras = new HashMap<>();
+            for (String key : extras.keySet()) {
+                final Double value = extras.get(key);
+                this.extras.put(key, value);
+            }
+        }
+    }
+
+    @Nullable
+    public HashMap<String, Double> getExtras() {
+        return extras;
     }
 }

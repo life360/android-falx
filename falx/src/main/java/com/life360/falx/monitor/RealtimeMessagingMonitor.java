@@ -85,6 +85,7 @@ public class RealtimeMessagingMonitor extends Monitor {
                     public void accept(RealtimeMessagingSession rtMessagingSession) throws Exception {
                         logger.d(Logger.TAG, "Real time data Session: " + rtMessagingSession.toString());
 
+
                         saveToDataStore(rtMessagingSession);
                     }
                 });
@@ -103,9 +104,13 @@ public class RealtimeMessagingMonitor extends Monitor {
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     protected void saveToDataStore(RealtimeMessagingSession session) {
         HashMap<String, Double> args = new HashMap<>();
-        args.put(FalxConstants.PROP_COUNT, 1.0D);
+        args.put(FalxConstants.PROP_COUNT, new Double(session.numMessagesReceived));
         args.put(FalxConstants.PROP_DURATION, new Double(session.sessionDuration));
-        args.put(FalxConstants.PROP_BYTES_RECEIVED, new Double(session.totalBytesReceived));
+
+        HashMap<String, Double> extras = session.getExtras();
+        if (extras != null) {
+            args.putAll(extras);
+        }
 
         eventPublishSubject.onNext(new FalxMonitorEvent(FalxConstants.EVENT_REALTIME_MESSAGING_SESSION, args));
     }
