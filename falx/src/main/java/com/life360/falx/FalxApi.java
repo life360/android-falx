@@ -170,6 +170,12 @@ public class FalxApi {
         }
     }
 
+    public void turnedOnOff(@NonNull String label, long durationMs) {
+        if (onOffListeners.containsKey(label)) {
+            onOffListeners.get(label).turnedOnOff(durationMs);
+        }
+    }
+
     /**
      * Call to log an event describing the receipt of a real-time message.
      * @param activity
@@ -360,6 +366,12 @@ public class FalxApi {
 
                     @Override
                     public void turnedOff() {
+                        emitter.onNext(false);
+                    }
+
+                    @Override
+                    public void turnedOnOff(long durationMs) {
+                        emitter.onNext(true);
                         emitter.onNext(false);
                     }
                 };

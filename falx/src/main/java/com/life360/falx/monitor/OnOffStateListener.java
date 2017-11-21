@@ -7,4 +7,5 @@ package com.life360.falx.monitor;
 public interface OnOffStateListener {
     void turnedOn();
     void turnedOff();
+    void turnedOnOff(long durationMs);
 }

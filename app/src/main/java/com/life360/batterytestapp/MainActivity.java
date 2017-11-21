@@ -50,6 +50,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     public static final String EVENT_GPS_ON = "gps-on";
     public static final String EVENT_ACTIVITY_DETECTION_ON = "activities-on";
     public static final String MONITOR_LABEL_ACTIVITY_DETECTION = "ActivityDetection";
+    public static final String MONITOR_LABEL_WAKELOCK = "WAKELOCK";
+    public static final String EVENT_KEEP_SCREEN_ON = "screen-on-partial";
 
     private GoogleMap mMap;
     private boolean logging;

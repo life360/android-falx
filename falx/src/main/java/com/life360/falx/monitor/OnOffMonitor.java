@@ -88,7 +88,7 @@ public class OnOffMonitor extends Monitor {
     boolean turnedOff() {
         long endTime = clock.currentTimeMillis();
         if (endTime < startTime) {
-            logger.e(TAG, label + " Likely error in timer schedule to mark end of a GPS session");
+            logger.e(TAG, label + " Likely error in timer schedule to mark end of a session");
 
             endTime = startTime;
         }
@@ -99,6 +99,17 @@ public class OnOffMonitor extends Monitor {
         eventPublishSubject.onNext(new FalxMonitorEvent(sessionData.getName(), sessionData.getArgumentMap()));
         startTime = 0;
 
+        return true;
+    }
+
+    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    boolean turnedOnOff(long durationMs) {
+        startTime = clock.currentTimeMillis();
+        long endTime = startTime + durationMs;
+        logger.d(Logger.TAG, label + " Session recorded (on/off), duration (seconds): " + ((endTime - startTime) / 1000));
+        OnOffSessionData sessionData = new OnOffSessionData(metricName, startTime, endTime);
+        eventPublishSubject.onNext(new FalxMonitorEvent(sessionData.getName(), sessionData.getArgumentMap()));
+        startTime = 0;
         return true;
     }
 
