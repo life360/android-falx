@@ -329,7 +329,6 @@ public class FalxEventStore implements FalxEventStorable {
         RealmResults<FalxEventEntity> allRealmEvents = realm.where(FalxEventEntity.class)
                 .findAllSorted(FalxEventEntity.KEY_TIMESTAMP, Sort.ASCENDING);
 
-
         if (allRealmEvents.size() <= 0) {
             realm.close();
             return null;

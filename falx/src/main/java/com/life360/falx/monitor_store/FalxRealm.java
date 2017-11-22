@@ -2,6 +2,7 @@ package com.life360.falx.monitor_store;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
+import io.realm.RealmMigration;
 
 /**
  * Created by Vikas on 9/19/17.
@@ -20,6 +21,8 @@ public class FalxRealm implements RealmStore {
     public Realm realmInstance() {
         RealmConfiguration configuration = new RealmConfiguration.Builder()
                 .name(realmFileName)
+                .schemaVersion(1) //updated schema version to 1
+                .migration(new FalxRealmMigration())
                 .modules(new FalxLibraryModule())
                 .build();
         return Realm.getInstance(configuration);
