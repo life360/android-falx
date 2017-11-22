@@ -22,6 +22,9 @@ import com.life360.falx.monitor.OnOffMonitor;
 import com.life360.falx.monitor.OnOffStateListener;
 import com.life360.falx.monitor.RealtimeMessagingMonitor;
 import com.life360.falx.monitor.RealtimeMessagingSession;
+import com.life360.falx.monitor.WakelockMonitor;
+import com.life360.falx.monitor.WakelockState;
+import com.life360.falx.monitor.WakelockStateListener;
 import com.life360.falx.monitor_store.AggregatedFalxMonitorEvent;
 import com.life360.falx.monitor_store.FalxEventStorable;
 import com.life360.falx.network.FalxInterceptor;
@@ -108,6 +111,14 @@ public class FalxApi {
         }
     }
 
+    public void addWakelockMonitor(@NonNull String monitorLabel, @NonNull String metricName) {
+        if (!wakeLockMonitors.containsKey(monitorLabel)) {
+            WakelockMonitor monitor = new WakelockMonitor(utilComponent, getWakelockObservable(monitorLabel), metricName, monitorLabel);
+            wakeLockMonitors.put(monitorLabel, monitor);
+            eventStorable.subscribeToEvents(monitor.getEventObservable());
+        }
+    }
+
     public void removeAllMonitors() {
         if (!monitors.isEmpty()) {
 
@@ -126,12 +137,21 @@ public class FalxApi {
             onOffMonitors.clear();
         }
 
+        if (!wakeLockMonitors.isEmpty()) {
+
+            for (Monitor monitor : wakeLockMonitors.values()) {
+                monitor.stop();
+            }
+
+            wakeLockMonitors.clear();
+        }
         eventStorable.clearSubscriptions();
     }
 
     public boolean isMonitorActive(int monitorId) {
         return monitors.containsKey(monitorId);
     }
+
     public boolean isMonitorActive(@NonNull String monitorLabel) {
         return onOffMonitors.containsKey(monitorLabel);
     }
@@ -170,8 +190,27 @@ public class FalxApi {
         }
     }
 
+    public void wakelockAcquired(@NonNull String label, long maxDuration) {
+        if (wakelockListeners.containsKey(label)) {
+            wakelockListeners.get(label).acquired(maxDuration);
+        }
+    }
+
+    public void wakelockAcquired(@NonNull String label) {
+        if (wakelockListeners.containsKey(label)) {
+            wakelockListeners.get(label).acquired();
+        }
+    }
+
+    public void wakelockReleased(@NonNull String label) {
+        if (wakelockListeners.containsKey(label)) {
+            wakelockListeners.get(label).released();
+        }
+    }
+
     /**
      * Call to log an event describing the receipt of a real-time message.
+     *
      * @param activity
      */
     public void realtimeMessageReceived(final RealtimeMessagingActivity activity) {
@@ -184,6 +223,7 @@ public class FalxApi {
 
     /**
      * Call to log an event to log data for a real-time messaging session.
+     *
      * @param session
      */
     public void realtimeMessageSessionCompleted(final RealtimeMessagingSession session) {
@@ -210,6 +250,7 @@ public class FalxApi {
     FalxEventStorable eventStorable;
 
     HashMap<String, OnOffStateListener> onOffListeners;
+    HashMap<String, WakelockStateListener> wakelockListeners;
 
     @Inject
     Context application;        // Application application
@@ -223,6 +264,7 @@ public class FalxApi {
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     protected HashMap<Integer, Monitor> monitors = new HashMap<>();
     private HashMap<String, Monitor> onOffMonitors = new HashMap<>();
+    private HashMap<String, Monitor> wakeLockMonitors = new HashMap<>();
 
     private FalxInterceptor falxInterceptor;
     private PublishSubject<NetworkActivity> networkActivitySubject = PublishSubject.create();
@@ -267,6 +309,8 @@ public class FalxApi {
         appStateListeners = new ArrayList<>();
         onOffListeners = new HashMap<>();
         onOffMonitors = new HashMap<>();
+        wakelockListeners = new HashMap<>();
+        wakeLockMonitors = new HashMap<>();
     }
 
     public void addAppStateListener(AppStateListener listener) {
@@ -368,6 +412,38 @@ public class FalxApi {
                     @Override
                     public void cancel() throws Exception {
                         onOffListeners.remove(monitorLabel);
+                    }
+                });
+            }
+        });
+    }
+
+    Observable<WakelockState> getWakelockObservable(final String monitorLabel) {
+        return Observable.create(new ObservableOnSubscribe<WakelockState>() {
+            @Override
+            public void subscribe(final ObservableEmitter<WakelockState> emitter) throws Exception {
+                WakelockStateListener wakelockListener = new WakelockStateListener() {
+
+                    @Override
+                    public void acquired(long maxDurartion) {
+                        emitter.onNext(new WakelockState(true, maxDurartion));
+                    }
+
+                    @Override
+                    public void acquired() {
+                        emitter.onNext(new WakelockState(true));
+                    }
+
+                    @Override
+                    public void released() {
+                        emitter.onNext(new WakelockState(false));
+                    }
+                };
+                wakelockListeners.put(monitorLabel, wakelockListener);
+                emitter.setCancellable(new Cancellable() {
+                    @Override
+                    public void cancel() throws Exception {
+                        wakelockListeners.remove(monitorLabel);
                     }
                 });
             }

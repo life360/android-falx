@@ -1,12 +1,12 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_height="match_parent"
-    android:layout_width="match_parent">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
     <Button
         android:id="@+id/trigger_stats"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@android:drawable/stat_sys_upload_done"/>
+        android:background="@android:drawable/stat_sys_upload_done" />
 
     <Button
         android:id="@+id/trigger_logging"
@@ -15,6 +15,7 @@
         android:layout_alignParentRight="true"
         android:background="@android:drawable/btn_default"
         android:text="!Log" />
+
     <Button
         android:id="@+id/trigger_realtime_event"
         android:layout_width="wrap_content"
@@ -35,16 +36,52 @@
     <Button
         android:id="@+id/get_events_json"
         android:layout_width="wrap_content"
-        android:layout_below="@id/trigger_logging"
         android:layout_height="wrap_content"
-        android:text="get events in json format"/>
+        android:layout_below="@id/trigger_logging"
+        android:text="get events in json format" />
 
-    <fragment
-        xmlns:map="http://schemas.android.com/apk/res-auto"
+    <fragment xmlns:map="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
         android:id="@+id/map"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:context="com.life360.batterytestapp.MapsActivity" />
+
+    <TextView
+        android:id="@+id/wakeLockText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/get_events_json"
+        android:layout_marginTop="19dp"
+        android:text="Max duration Wakelock"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+
+    <Switch
+        android:id="@+id/wakelockSwitch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/wakeLockText"
+        android:layout_marginLeft="20dp"
+        android:layout_marginStart="20dp"
+        android:layout_toRightOf="@+id/wakeLockText" />
+
+    <TextView
+        android:id="@+id/wakeLock2Text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/wakeLockText"
+        android:layout_marginTop="19dp"
+        android:text="Wakelock"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+
+    <Switch
+        android:id="@+id/wakelock2Switch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/wakeLock2Text"
+        android:layout_marginLeft="20dp"
+        android:layout_marginStart="20dp"
+        android:layout_toRightOf="@+id/wakeLock2Text" />
+
 </RelativeLayout>

@@ -13,6 +13,10 @@ public class FalxMonitorEvent {
     private String name;
     private Date timestamp;
     private Map<String, Double> arguments;
+    /* whether this event is just an update to a previously logged event.
+     * Used to update the wake lock actual duration when it was initially acquired for a max duration but got released.
+     */
+    private boolean updated;
 
     public FalxMonitorEvent(String name, Map<String, Double> arguments) {
         this.name = name;
@@ -30,5 +34,12 @@ public class FalxMonitorEvent {
 
     public Map<String, Double> getArguments() {
         return arguments;
+    }
+
+    public boolean isUpdate() {return updated;}
+
+    public void updateArgs(Map<String, Double> arguments) {
+        this.arguments = arguments;
+        updated = true;
     }
 }

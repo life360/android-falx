@@ -12,6 +12,8 @@ import android.support.v4.app.FragmentActivity;
 import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.View;
+import android.widget.CompoundButton;
+import android.widget.Switch;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -24,7 +26,6 @@ import com.life360.batterytestapp.google.GeocodeResponse;
 import com.life360.batterytestapp.google.GooglePlatform;
 import com.life360.falx.FalxApi;
 import com.life360.falx.model.RealtimeMessagingActivity;
-import com.life360.falx.monitor.FalxConstants;
 import com.life360.falx.monitor.RealtimeMessagingSession;
 
 import java.io.BufferedReader;
@@ -44,17 +45,22 @@ import retrofit2.Response;
 import static android.app.job.JobInfo.NETWORK_TYPE_ANY;
 
 public class MainActivity extends FragmentActivity implements OnMapReadyCallback {
-
+    public static final String LOGTAG = "FalxDebugActivity";
 
     public static final String MONITOR_LABEL_GPS = "GPS";
     public static final String EVENT_GPS_ON = "gps-on";
     public static final String EVENT_ACTIVITY_DETECTION_ON = "activities-on";
     public static final String MONITOR_LABEL_ACTIVITY_DETECTION = "ActivityDetection";
+    public static final String EVENT_WAKELOCK_ACQUIRED = "wakelock-acquired";
+    public static final String MONITOR_LABEL_WAKELOCK = "test wakelock";
+    public static final String MONITOR_LABEL_WAKELOCK2 = "test wakelock2";
 
     private GoogleMap mMap;
     private boolean logging;
     private FalxApi falxApi;
     private long sessionStartTime;
+    private long wakelockAcquireTime;
+    private long wakelock2AcquireTime;
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     @Override
@@ -71,11 +77,13 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         falxApi.addMonitors(FalxApi.MONITOR_APP_STATE | FalxApi.MONITOR_NETWORK | FalxApi.MONITOR_REALTIME_MESSAGING);
         falxApi.addOnOffMonitor(MONITOR_LABEL_GPS, EVENT_GPS_ON);
         falxApi.addOnOffMonitor(MONITOR_LABEL_ACTIVITY_DETECTION, EVENT_ACTIVITY_DETECTION_ON);
+        falxApi.addWakelockMonitor(MONITOR_LABEL_WAKELOCK, EVENT_WAKELOCK_ACQUIRED);
+        falxApi.addWakelockMonitor(MONITOR_LABEL_WAKELOCK2, EVENT_WAKELOCK_ACQUIRED);
 
         findViewById(R.id.trigger_stats).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Log.d("rk-dbg", "Test aggregate data query...");
+                Log.d(LOGTAG, "Test aggregate data query...");
 
                 BatteryStatReporter.sendLogs(MainActivity.this);
             }
@@ -86,7 +94,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             public void onClick(View v) {
                 Random random = new Random();
                 int bytes = random.nextInt(10000);
-                RealtimeMessagingActivity rtActivity = new RealtimeMessagingActivity(1,  bytes, "mqtt");
+                RealtimeMessagingActivity rtActivity = new RealtimeMessagingActivity(1, bytes, "mqtt");
                 falxApi.realtimeMessageReceived(rtActivity);
             }
         });
@@ -111,6 +119,32 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                     Toast.makeText(MainActivity.this, "Falx Logging enabled.", Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(MainActivity.this, "Falx Logging disabled.", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        ((Switch) findViewById(R.id.wakelockSwitch)).setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                if (b) {
+                    wakelockAcquireTime = System.currentTimeMillis();
+                    falxApi.wakelockAcquired(MONITOR_LABEL_WAKELOCK, DateUtils.MINUTE_IN_MILLIS);
+                } else {
+                    Log.d(LOGTAG, "Wakelock held for " + (System.currentTimeMillis() - wakelockAcquireTime) + " ms");
+                    falxApi.wakelockReleased(MONITOR_LABEL_WAKELOCK);
+                }
+            }
+        });
+
+        ((Switch) findViewById(R.id.wakelock2Switch)).setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                if (b) {
+                    wakelock2AcquireTime = System.currentTimeMillis();
+                    falxApi.wakelockAcquired(MONITOR_LABEL_WAKELOCK2);
+                } else {
+                    Log.d(LOGTAG, "Wakelock held for " + (System.currentTimeMillis() - wakelock2AcquireTime) + " ms");
+                    falxApi.wakelockReleased(MONITOR_LABEL_WAKELOCK2);
                 }
             }
         });
@@ -143,9 +177,9 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             JobInfo jobInfo = builder.build();
 
             int schRes = jobScheduler.schedule(jobInfo);
-            Log.d("rk-dbg", "Job scheduling result: " + schRes);
+            Log.d(LOGTAG, "Job scheduling result: " + schRes);
         } else {
-            Log.d("rk-dbg", "Battery stat reporter job already scheduled");
+            Log.d(LOGTAG, "Battery stat reporter job already scheduled");
         }
     }
 
@@ -199,7 +233,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onMapLongClick(LatLng latLng) {
 
-                Log.d("rk-dbg", "Map long click rev-geocoding: " + latLng.toString());
+                Log.d(LOGTAG, "Map long click rev-geocoding: " + latLng.toString());
 
                 // Try a reverse geocode
                 GooglePlatform.getInterface(MainActivity.this)
@@ -216,11 +250,11 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                                         address = results.formattedAddress;
                                     }
 
-                                    Log.d("rk-dbg", "Rev geocode response: " + address);
+                                    Log.d(LOGTAG, "Rev geocode response: " + address);
                                     Toast.makeText(MainActivity.this, address, Toast.LENGTH_SHORT).show();
                                 } else {
                                     try {
-                                        Log.e("rk-dbg", "Error in response: " + response.errorBody().string());
+                                        Log.e(LOGTAG, "Error in response: " + response.errorBody().string());
                                     } catch (IOException e) {
                                     }
                                 }
@@ -228,7 +262,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
                             @Override
                             public void onFailure(Call<GeocodeResponse> call, Throwable t) {
-                                Log.e("rk-dbg", "Call failure: " + t.toString());
+                                Log.e(LOGTAG, "Call failure: " + t.toString());
                             }
                         });
             }

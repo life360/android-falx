@@ -82,6 +82,22 @@ public class FalxEventStore implements FalxEventStorable {
 
         Realm realm = realmStore.realmInstance();
 
+
+        if (event.isUpdate()) {
+            /*
+             * If this event was an update to previous event, find it and delete it from DB.
+             * Used to update wakelock actual duration when initially acquired for max duration but was manually released.
+             */
+            RealmResults<FalxEventEntity> oldEntities = realm.where(FalxEventEntity.class)
+                    .equalTo(FalxEventEntity.KEY_NAME, event.getName())
+                    .equalTo(FalxEventEntity.KEY_TIMESTAMP, event.getTimestamp())
+                    .findAll().sort(FalxEventEntity.KEY_TIMESTAMP);
+            if (oldEntities.size() >= 1) {
+                realm.beginTransaction();
+                oldEntities.deleteAllFromRealm();
+                realm.commitTransaction();
+            }
+        }
         realm.beginTransaction();
         realm.copyToRealm(entity);
         realm.commitTransaction();
