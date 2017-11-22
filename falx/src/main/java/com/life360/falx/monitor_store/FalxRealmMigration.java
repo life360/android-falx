@@ -21,4 +21,14 @@ public class FalxRealmMigration implements RealmMigration {
             oldVersion++;
         }
     }
+
+    @Override
+    public int hashCode() {
+        return 37;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return (o instanceof FalxRealmMigration);
+    }
 }
