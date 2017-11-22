@@ -54,6 +54,11 @@ public class FakeFalxEventStore implements FalxEventStorable {
     }
 
     @Override
+    public void deleteAllEvents() {
+
+    }
+
+    @Override
     public List<AggregatedFalxMonitorEvent> aggregateEvents(String eventName) {
         return aggregatedEvents(eventName, true);
     }

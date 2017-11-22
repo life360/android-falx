@@ -20,6 +20,7 @@ public class FalxEventEntity extends RealmObject {
     private Date timestamp;
 
     public static final String KEY_ARGUMENTS = "arguments";
+
     private RealmList<EventArgument> arguments;
 
     public static final String KEY_PROCESSED_FOR_AGGREGATION = "processedForAggregation";
@@ -45,7 +46,11 @@ public class FalxEventEntity extends RealmObject {
         return realmList;
     }
 
-    public Map<String, Double> getArguments() {
+    public RealmList<EventArgument> getArguments() {
+        return arguments;
+    }
+
+    public Map<String, Double> getArgumentsMap() {
         HashMap<String, Double> argMap = new HashMap<>();
 
         for (EventArgument arg : arguments) {

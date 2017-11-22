@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.life360.falx.model.EventArgument;
 import com.life360.falx.model.FalxEventEntity;
 import com.life360.falx.model.FalxMonitorEvent;
 
@@ -25,10 +26,9 @@ import java.util.Map;
 
 import io.reactivex.Observable;
 import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.disposables.Disposables;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
+import io.realm.OrderedRealmCollectionSnapshot;
 import io.realm.Realm;
 import io.realm.RealmList;
 import io.realm.RealmResults;
@@ -98,18 +98,37 @@ public class FalxEventStore implements FalxEventStorable {
         sixDaysAgoCal.set(Calendar.SECOND, 0);
 
         Realm realm = realmStore.realmInstance();
-        Date beginingOfSixDaysAgo = sixDaysAgoCal.getTime();
+        Date beginningOfSixDaysAgo = sixDaysAgoCal.getTime();
         final RealmResults<FalxEventEntity> olderEvents = realm
                 .where(FalxEventEntity.class)
-                .lessThan(FalxEventEntity.KEY_TIMESTAMP, beginingOfSixDaysAgo)
+                .lessThan(FalxEventEntity.KEY_TIMESTAMP, beginningOfSixDaysAgo)
                 .findAll();
 
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
+
+                // Use a snapshot of the arguments to remove all arguments from inside each element
+                for (FalxEventEntity event : olderEvents) {
+                    RealmList<EventArgument> arguments = event.getArguments();
+                    OrderedRealmCollectionSnapshot<EventArgument> argsSnapshot = arguments.createSnapshot();
+                    argsSnapshot.deleteAllFromRealm();
+                }
+
                 olderEvents.deleteAllFromRealm();
             }
         });
+
+        realm.close();
+    }
+
+    @Override
+    public void deleteAllEvents() {
+        Realm realm = realmStore.realmInstance();
+
+        realm.beginTransaction();
+        realm.deleteAll();
+        realm.commitTransaction();
 
         realm.close();
     }
@@ -204,7 +223,7 @@ public class FalxEventStore implements FalxEventStorable {
                                        Map<String, Double> aggregatedArguments) {
         processedEvents.add(currentEntity);
 
-        Map<String, Double> currentArguments = currentEntity.getArguments();
+        Map<String, Double> currentArguments = currentEntity.getArgumentsMap();
 
         for (String key : currentArguments.keySet()) {
             if (!key.contains(FALX_URL_PREFIX)) {
@@ -327,7 +346,7 @@ public class FalxEventStore implements FalxEventStorable {
                 cal.setTime(falxEventEntity.getTimestamp());
                 jsonObject.put(FalxEventEntity.KEY_TIMESTAMP, Long.toString(cal.getTimeInMillis()));
 
-                for (Map.Entry<String, Double> entry : falxEventEntity.getArguments().entrySet()) {
+                for (Map.Entry<String, Double> entry : falxEventEntity.getArgumentsMap().entrySet()) {
                     jsonObject.put(entry.getKey(), Double.toString(entry.getValue()));
                 }
             } catch (JSONException e) {
@@ -395,7 +414,7 @@ public class FalxEventStore implements FalxEventStorable {
         RealmResults<FalxEventEntity> entities = realm.where(FalxEventEntity.class).findAll();
 
         for (FalxEventEntity entity : entities) {
-            Log.d(TAG, entity.toString() + "----" + entity.getArguments().toString());
+            Log.d(TAG, entity.toString() + "----" + entity.getArgumentsMap().toString());
         }
 
         realm.close();

@@ -115,6 +115,15 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
+        findViewById(R.id.trigger_deleteall_event).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.e("rk-dbg", "Deleting all stored events...");
+                falxApi.deleteAllEvents();
+                Log.e("rk-dbg", "Deletion complete");
+            }
+        });
+
         JobScheduler jobScheduler = (JobScheduler) this.getSystemService(Context.JOB_SCHEDULER_SERVICE);
 
         List<JobInfo> pendingJobs = jobScheduler.getAllPendingJobs();

@@ -18,6 +18,8 @@ public interface FalxEventStorable {
 
     void deleteOldEvents();
 
+    void deleteAllEvents();
+
     List<AggregatedFalxMonitorEvent> aggregateEvents(String eventName);
 
     List<AggregatedFalxMonitorEvent> aggregatedEvents(String eventName, boolean allowPartialDays);

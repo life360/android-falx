@@ -443,4 +443,13 @@ public class FalxApi {
         return null;
     }
 
+    /**
+     * Clears all stored data logged by the library.
+     */
+    public void deleteAllEvents() {
+        if (eventStorable != null) {
+            eventStorable.deleteAllEvents();
+        }
+    }
+
 }
