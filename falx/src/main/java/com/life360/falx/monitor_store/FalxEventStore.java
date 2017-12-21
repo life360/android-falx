@@ -54,7 +54,7 @@ public class FalxEventStore implements FalxEventStorable {
 
     protected Context context;
 
-    protected RealmStore realmStore;
+    private RealmStore realmStore;
 
     private CompositeDisposable compositeDisposable;
 
@@ -77,32 +77,42 @@ public class FalxEventStore implements FalxEventStorable {
     }
 
     @Override
-    public void save(FalxMonitorEvent event) {
-        FalxEventEntity entity = new FalxEventEntity(event);
+    public void save(final FalxMonitorEvent event) {
 
-        Realm realm = realmStore.realmInstance();
+        Realm realm = null;
+        try {
+            realm = realmStore.realmInstance();
 
-
-        if (event.isUpdate()) {
-            /*
-             * If this event was an update to previous event, find it and delete it from DB.
-             * Used to update wakelock actual duration when initially acquired for max duration but was manually released.
-             */
-            RealmResults<FalxEventEntity> oldEntities = realm.where(FalxEventEntity.class)
-                    .equalTo(FalxEventEntity.KEY_NAME, event.getName())
-                    .equalTo(FalxEventEntity.KEY_TIMESTAMP, event.getTimestamp())
-                    .findAll().sort(FalxEventEntity.KEY_TIMESTAMP);
-            if (oldEntities.size() >= 1) {
-                realm.beginTransaction();
-                oldEntities.deleteAllFromRealm();
-                realm.commitTransaction();
+            realm.executeTransaction(new Realm.Transaction() {
+                @Override
+                public void execute(@NonNull Realm realm) {
+                    if (event.isUpdate()) {
+                        /*
+                        * If this event was an update to previous event, find it and delete it from DB.
+                        * Used to update wakelock actual duration when initially acquired for max duration but was manually released.
+                        */
+                        FalxEventEntity oldEntity = realm.where(FalxEventEntity.class)
+                                .equalTo(FalxEventEntity.KEY_NAME, event.getName())
+                                .equalTo(FalxEventEntity.KEY_TIMESTAMP, event.getTimestamp())
+                                .findAll().sort(FalxEventEntity.KEY_TIMESTAMP).first();
+                        if (oldEntity != null) {
+                            for (EventArgument argument : oldEntity.getArguments()) {
+                                if (event.getArguments().containsKey(argument.getKey())) {
+                                    argument.setValue(event.getArguments().get(argument.getKey()));
+                                }
+                            }
+                        }
+                    } else {
+                        FalxEventEntity entity = new FalxEventEntity(event);
+                        realm.insert(entity);
+                    }
+                }
+            });
+        } finally {
+            if (realm != null) {
+                realm.close();
             }
         }
-        realm.beginTransaction();
-        realm.copyToRealm(entity);
-        realm.commitTransaction();
-
-        realm.close();
     }
 
     @Override
@@ -112,41 +122,53 @@ public class FalxEventStore implements FalxEventStorable {
         sixDaysAgoCal.set(Calendar.HOUR_OF_DAY, 0);
         sixDaysAgoCal.set(Calendar.MINUTE, 0);
         sixDaysAgoCal.set(Calendar.SECOND, 0);
+        Realm realm = null;
 
-        Realm realm = realmStore.realmInstance();
-        Date beginningOfSixDaysAgo = sixDaysAgoCal.getTime();
-        final RealmResults<FalxEventEntity> olderEvents = realm
-                .where(FalxEventEntity.class)
-                .lessThan(FalxEventEntity.KEY_TIMESTAMP, beginningOfSixDaysAgo)
-                .findAll();
+        try {
+            realm = realmStore.realmInstance();
+            final Date beginningOfSixDaysAgo = sixDaysAgoCal.getTime();
 
-        realm.executeTransaction(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
+            realm.executeTransaction(new Realm.Transaction() {
+                @Override
+                public void execute(@NonNull Realm realm) {
+                    RealmResults<FalxEventEntity> olderEvents = realm
+                            .where(FalxEventEntity.class)
+                            .lessThan(FalxEventEntity.KEY_TIMESTAMP, beginningOfSixDaysAgo)
+                            .findAll();
 
-                // Use a snapshot of the arguments to remove all arguments from inside each element
-                for (FalxEventEntity event : olderEvents) {
-                    RealmList<EventArgument> arguments = event.getArguments();
-                    OrderedRealmCollectionSnapshot<EventArgument> argsSnapshot = arguments.createSnapshot();
-                    argsSnapshot.deleteAllFromRealm();
+                    // Use a snapshot of the arguments to remove all arguments from inside each element
+                    for (FalxEventEntity event : olderEvents) {
+                        RealmList<EventArgument> arguments = event.getArguments();
+                        OrderedRealmCollectionSnapshot<EventArgument> argsSnapshot = arguments.createSnapshot();
+                        argsSnapshot.deleteAllFromRealm();
+                    }
+
+                    olderEvents.deleteAllFromRealm();
                 }
-
-                olderEvents.deleteAllFromRealm();
+            });
+        } finally {
+            if (realm != null) {
+                realm.close();
             }
-        });
-
-        realm.close();
+        }
     }
 
     @Override
     public void deleteAllEvents() {
-        Realm realm = realmStore.realmInstance();
-
-        realm.beginTransaction();
-        realm.deleteAll();
-        realm.commitTransaction();
-
-        realm.close();
+        Realm realm = null;
+        try {
+            realm = realmStore.realmInstance();
+            realm.executeTransaction(new Realm.Transaction() {
+                @Override
+                public void execute(@NonNull Realm realm) {
+                    realm.deleteAll();
+                }
+            });
+        } finally {
+            if (realm != null) {
+                realm.close();
+            }
+        }
     }
 
     @Override
@@ -163,75 +185,68 @@ public class FalxEventStore implements FalxEventStorable {
      */
     @Override
     public List<AggregatedFalxMonitorEvent> aggregatedEvents(String eventName, boolean allowPartialDays) {
+        Realm realm = null;
+        try {
+            List<AggregatedFalxMonitorEvent> aggregatedFalxEvents = new ArrayList<>();
+            realm = realmStore.realmInstance();
 
-        List<AggregatedFalxMonitorEvent> aggregatedFalxEvents = new ArrayList<>();
+            RealmResults<FalxEventEntity> events = realm.where(FalxEventEntity.class)
+                    .equalTo(FalxEventEntity.KEY_NAME, eventName)
+                    .equalTo(FalxEventEntity.KEY_PROCESSED_FOR_AGGREGATION, false)
+                    .findAllSorted(FalxEventEntity.KEY_TIMESTAMP, Sort.ASCENDING);
+            int count = events.size();
 
-        Realm realm = realmStore.realmInstance();
+            if (count <= 0) {
+                return aggregatedFalxEvents;
+            }
 
-        RealmResults<FalxEventEntity> events = realm.where(FalxEventEntity.class)
-                .equalTo(FalxEventEntity.KEY_NAME, eventName)
-                .equalTo(FalxEventEntity.KEY_PROCESSED_FOR_AGGREGATION, false)
-                .findAllSorted(FalxEventEntity.KEY_TIMESTAMP, Sort.ASCENDING);
+            RealmList<FalxEventEntity> processedEvents = new RealmList<>();
+            Date beginWindowDate = events.first().getTimestamp();
+            Map<String, Double> aggregatedArguments = new HashMap<>();
 
+            for (FalxEventEntity event : events) {
+                Date currentEventDate = event.getTimestamp();
+                Calendar calBegin = Calendar.getInstance();
+                calBegin.setTime(beginWindowDate);
+                Calendar calCurrent = Calendar.getInstance();
+                calCurrent.setTime(currentEventDate);
 
-        int count = events.size();
+                if (isSameDate(calBegin, calCurrent)) {
+                    this.aggregateCurrentEvent(
+                            event,
+                            processedEvents,
+                            aggregatedArguments);
+                } else {
+                    appendEvent(
+                            beginWindowDate,
+                            processedEvents,
+                            aggregatedArguments,
+                            aggregatedFalxEvents);
 
-        if (count <= 0) {
-            return aggregatedFalxEvents;
-        }
+                    //for next event
+                    processedEvents.clear();
+                    aggregatedArguments.clear();
+                    beginWindowDate = currentEventDate;
+                    this.aggregateCurrentEvent(
+                            event,
+                            processedEvents,
+                            aggregatedArguments);
+                }
+            }
 
-
-        RealmList<FalxEventEntity> processedEvents = new RealmList<>();
-
-        Date beginWindowDate = events.first().getTimestamp();
-
-        Map<String, Double> aggregatedArguments = new HashMap<>();
-
-        for (FalxEventEntity event : events) {
-            Date currentEventDate = event.getTimestamp();
-
-
-            Calendar calBegin = Calendar.getInstance();
-            calBegin.setTime(beginWindowDate);
-
-            Calendar calCurrent = Calendar.getInstance();
-            calCurrent.setTime(currentEventDate);
-
-            if (isSameDate(calBegin, calCurrent)) {
-                this.aggregateCurrentEvent(
-                        event,
-                        processedEvents,
-                        aggregatedArguments);
-            } else {
+            if (allowPartialDays) {
                 appendEvent(
                         beginWindowDate,
                         processedEvents,
                         aggregatedArguments,
                         aggregatedFalxEvents);
-
-                //for next event
-                processedEvents.clear();
-                aggregatedArguments.clear();
-                beginWindowDate = currentEventDate;
-                this.aggregateCurrentEvent(
-                        event,
-                        processedEvents,
-                        aggregatedArguments);
             }
-
-
+            return aggregatedFalxEvents;
+        } finally {
+            if (realm != null) {
+                realm.close();
+            }
         }
-
-        if (allowPartialDays) {
-            appendEvent(
-                    beginWindowDate,
-                    processedEvents,
-                    aggregatedArguments,
-                    aggregatedFalxEvents);
-        }
-
-        realm.close();
-        return aggregatedFalxEvents;
     }
 
     private void aggregateCurrentEvent(FalxEventEntity currentEntity,
@@ -256,48 +271,47 @@ public class FalxEventStore implements FalxEventStorable {
     private AggregatedFalxMonitorEvent createAggregatedEvents(final RealmList<FalxEventEntity> events,
                                                               Map<String, Double> aggregatedArguments,
                                                               long timestamp) {
-        if (events == null || events.size() == 0) {
-            return null;
-        }
-
-        AggregatedFalxMonitorEvent aggregatedEvent = new AggregatedFalxMonitorEvent(
-                events.first().getName(),
-                events.size(),
-                timestamp);
-
-        for (Map.Entry<String, Double> entry : aggregatedArguments.entrySet()) {
-            aggregatedEvent.putArgument(entry.getKey(), entry.getValue());
-        }
-
-
-        Realm realm = realmStore.realmInstance();
-
-        realm.executeTransaction(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                for (FalxEventEntity event : events) {
-                    event.setProcessedForAggregation(true);
-                }
+        Realm realm = null;
+        try {
+            if (events == null || events.size() == 0) {
+                return null;
             }
-        });
 
-        realm.close();
+            AggregatedFalxMonitorEvent aggregatedEvent = new AggregatedFalxMonitorEvent(
+                    events.first().getName(),
+                    events.size(),
+                    timestamp);
 
-        return aggregatedEvent;
+            for (Map.Entry<String, Double> entry : aggregatedArguments.entrySet()) {
+                aggregatedEvent.putArgument(entry.getKey(), entry.getValue());
+            }
 
+            realm = realmStore.realmInstance();
+            realm.executeTransaction(new Realm.Transaction() {
+                @Override
+                public void execute(@NonNull Realm realm) {
+                    for (FalxEventEntity event : events) {
+                        event.setProcessedForAggregation(true);
+                    }
+                }
+            });
+            return aggregatedEvent;
+        } finally {
+            if (realm != null) {
+                realm.close();
+            }
+        }
     }
 
     private void appendEvent(Date beginWindowDate,
                              final RealmList<FalxEventEntity> processedEvents,
                              Map<String, Double> aggregatedArguments,
                              List<AggregatedFalxMonitorEvent> aggregatedFalxEvents) {
-
         Calendar cal = Calendar.getInstance();
         cal.setTime(beginWindowDate);
         cal.set(Calendar.HOUR_OF_DAY, 0);
         cal.set(Calendar.MINUTE, 0);
         cal.set(Calendar.SECOND, 0);
-
         Date startOfDay = cal.getTime();
 
         AggregatedFalxMonitorEvent aggregatedFalxMonitorEvent =
@@ -310,92 +324,94 @@ public class FalxEventStore implements FalxEventStorable {
 
     @Override
     public List<AggregatedFalxMonitorEvent> allAggregatedEvents(boolean allowPartialDays) {
-        Realm realm = realmStore.realmInstance();
+        Realm realm = null;
+        try {
+            realm = realmStore.realmInstance();
+            RealmResults<FalxEventEntity> allDistinctNameEvents = realm.where(FalxEventEntity.class).distinct(FalxEventEntity.KEY_NAME);
+            List<AggregatedFalxMonitorEvent> allEvents = new ArrayList<>();
 
-        RealmResults<FalxEventEntity> allDistinctNameEvents = realm.where(FalxEventEntity.class).distinct(FalxEventEntity.KEY_NAME);
-
-        List<AggregatedFalxMonitorEvent> allEvents = new ArrayList<>();
-        for (int i = 0; i < allDistinctNameEvents.size(); i++) {
-            List<AggregatedFalxMonitorEvent> events = this.aggregatedEvents(
-                    allDistinctNameEvents.get(i).getName(),
-                    allowPartialDays);
-            allEvents.addAll(events);
-
+            for (int i = 0; i < allDistinctNameEvents.size(); i++) {
+                List<AggregatedFalxMonitorEvent> events = this.aggregatedEvents(
+                        allDistinctNameEvents.get(i).getName(),
+                        allowPartialDays);
+                allEvents.addAll(events);
+            }
+            this.setSyncDate(new Date());
+            this.deleteOldEvents();
+            return allEvents;
+        } finally {
+            if (realm != null) {
+                realm.close();
+            }
         }
-        this.setSyncDate(new Date());
-        this.deleteOldEvents();
-
-        realm.close();
-
-        return allEvents;
     }
 
     @Override
     public URI eventToJSONFile(@NonNull String fileName) {
-        this.deleteOldEvents();
+        Realm realm = null;
+        try {
+            this.deleteOldEvents();
 
-        if (fileName.length() == 0) {
-            return null;
-        }
-
-        File jsonFile = new File(context.getCacheDir(), fileName);
-
-        Realm realm = realmStore.realmInstance();
-
-        RealmResults<FalxEventEntity> allRealmEvents = realm.where(FalxEventEntity.class)
-                .findAllSorted(FalxEventEntity.KEY_TIMESTAMP, Sort.ASCENDING);
-
-        if (allRealmEvents.size() <= 0) {
-            realm.close();
-            return null;
-        }
-
-        JSONArray jsonEvents = new JSONArray();
-
-        for (FalxEventEntity falxEventEntity : allRealmEvents) {
-            JSONObject jsonObject = new JSONObject();
-            try {
-                jsonObject.put(FalxEventEntity.KEY_NAME, falxEventEntity.getName());
-
-                Calendar cal = Calendar.getInstance();
-                cal.setTime(falxEventEntity.getTimestamp());
-                jsonObject.put(FalxEventEntity.KEY_TIMESTAMP, Long.toString(cal.getTimeInMillis()));
-
-                for (Map.Entry<String, Double> entry : falxEventEntity.getArgumentsMap().entrySet()) {
-                    jsonObject.put(entry.getKey(), Double.toString(entry.getValue()));
-                }
-            } catch (JSONException e) {
-                Log.d(TAG, e.getMessage());
-                realm.close();
+            if (fileName.length() == 0) {
                 return null;
             }
 
-            jsonEvents.put(jsonObject);
-        }
+            File jsonFile = new File(context.getCacheDir(), fileName);
+            realm = realmStore.realmInstance();
 
-        FileOutputStream fileOutputStream = null;
-        try {
-            fileOutputStream = new FileOutputStream(jsonFile, false);
-            byte[] content = jsonEvents.toString().getBytes();
+            RealmResults<FalxEventEntity> allRealmEvents = realm.where(FalxEventEntity.class)
+                    .findAllSorted(FalxEventEntity.KEY_TIMESTAMP, Sort.ASCENDING);
 
-            fileOutputStream.write(content);
-        } catch (IOException e) {
-            Log.e(TAG, e.getMessage());
-            return null;
-        } finally {
-            if (fileOutputStream != null)
+            if (allRealmEvents.size() <= 0) {
+                return null;
+            }
+
+            JSONArray jsonEvents = new JSONArray();
+            for (FalxEventEntity falxEventEntity : allRealmEvents) {
+                JSONObject jsonObject = new JSONObject();
                 try {
-                    fileOutputStream.flush();
-                    fileOutputStream.close();
-                } catch (IOException e) {
+                    jsonObject.put(FalxEventEntity.KEY_NAME, falxEventEntity.getName());
+
+                    Calendar cal = Calendar.getInstance();
+                    cal.setTime(falxEventEntity.getTimestamp());
+                    jsonObject.put(FalxEventEntity.KEY_TIMESTAMP, Long.toString(cal.getTimeInMillis()));
+
+                    for (Map.Entry<String, Double> entry : falxEventEntity.getArgumentsMap().entrySet()) {
+                        jsonObject.put(entry.getKey(), Double.toString(entry.getValue()));
+                    }
+                } catch (JSONException e) {
                     Log.d(TAG, e.getMessage());
-                    realm.close();
                     return null;
                 }
+                jsonEvents.put(jsonObject);
+            }
+
+            FileOutputStream fileOutputStream = null;
+            try {
+                fileOutputStream = new FileOutputStream(jsonFile, false);
+                byte[] content = jsonEvents.toString().getBytes();
+
+                fileOutputStream.write(content);
+            } catch (IOException e) {
+                Log.e(TAG, e.getMessage());
+                return null;
+            } finally {
+                if (fileOutputStream != null)
+                    try {
+                        fileOutputStream.flush();
+                        fileOutputStream.close();
+                    } catch (IOException e) {
+                        Log.e(TAG, "problem while flushing", e);
+                    }
+            }
+            return jsonFile.toURI();
+        } finally {
+            if (realm != null) {
+                realm.close();
+            }
         }
 
-        realm.close();
-        return jsonFile.toURI();
+
     }
 
     @Override
@@ -422,16 +438,20 @@ public class FalxEventStore implements FalxEventStorable {
 
     }
 
-    // ** Test function
+    // Test function
     public void testFunction() {
-        Realm realm = realmStore.realmInstance();
+        Realm realm = null;
+        try {
+            realm = realmStore.realmInstance();
 
-        RealmResults<FalxEventEntity> entities = realm.where(FalxEventEntity.class).findAll();
-
-        for (FalxEventEntity entity : entities) {
-            Log.d(TAG, entity.toString() + "----" + entity.getArgumentsMap().toString());
+            RealmResults<FalxEventEntity> entities = realm.where(FalxEventEntity.class).findAll();
+            for (FalxEventEntity entity : entities) {
+                Log.d(TAG, entity.toString() + "----" + entity.getArgumentsMap().toString());
+            }
+        } finally {
+            if (realm != null) {
+                realm.close();
+            }
         }
-
-        realm.close();
     }
 }

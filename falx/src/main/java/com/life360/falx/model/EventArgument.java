@@ -4,7 +4,7 @@ import io.realm.RealmObject;
 
 /**
  * Store a key-value pair where the Key is a string and the value is a floating point.
- *
+ * <p>
  * Created by Vikas on 9/21/17.
  */
 
@@ -26,6 +26,10 @@ public class EventArgument extends RealmObject {
 
     public Double getValue() {
         return value;
+    }
+
+    public void setValue(Double value) {
+        this.value = value;
     }
 
     @Override
