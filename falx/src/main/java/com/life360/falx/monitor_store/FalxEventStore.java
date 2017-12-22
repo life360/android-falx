@@ -94,7 +94,7 @@ public class FalxEventStore implements FalxEventStorable {
                         FalxEventEntity oldEntity = realm.where(FalxEventEntity.class)
                                 .equalTo(FalxEventEntity.KEY_NAME, event.getName())
                                 .equalTo(FalxEventEntity.KEY_TIMESTAMP, event.getTimestamp())
-                                .findAll().sort(FalxEventEntity.KEY_TIMESTAMP).first();
+                                .findAll().sort(FalxEventEntity.KEY_TIMESTAMP).first(null);
                         if (oldEntity != null) {
                             for (EventArgument argument : oldEntity.getArguments()) {
                                 if (event.getArguments().containsKey(argument.getKey())) {
