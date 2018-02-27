@@ -158,7 +158,7 @@ public class FalxEventStore implements FalxEventStorable {
 
     private void deleteOldEventsFromDataStore() {
         Calendar sixDaysAgoCal = Calendar.getInstance();
-        sixDaysAgoCal.add(Calendar.DATE, 1);
+        sixDaysAgoCal.add(Calendar.DATE, -6);
         sixDaysAgoCal.set(Calendar.HOUR_OF_DAY, 0);
         sixDaysAgoCal.set(Calendar.MINUTE, 0);
         sixDaysAgoCal.set(Calendar.SECOND, 0);
