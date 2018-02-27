@@ -96,7 +96,7 @@ public class FalxEventStore implements FalxEventStorable {
                             saveEvent(event);
                         }
                     })
-                    .blockingFirst();
+                    .subscribe();
         }
     }
 
