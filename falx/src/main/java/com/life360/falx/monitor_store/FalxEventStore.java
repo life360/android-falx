@@ -47,7 +47,7 @@ public class FalxEventStore implements FalxEventStorable {
     private static final String TAG = FalxEventStore.class.getSimpleName();
 
     private static final String FALX_EVENT_STORE_SYNC_DATE_KEY = "FalxEventStoreSyncDatekey";
-    private static final String LOOPER_THREAD_NAME = "LOOPER_SCHEDULER";
+    private static final String LOOPER_THREAD_NAME = "FalxEventStoreThread";
     //TODO move to network monitor
     public static final String FALX_URL_PREFIX = "URL=";
 
@@ -82,7 +82,7 @@ public class FalxEventStore implements FalxEventStorable {
 
     @Override
     public void save(final FalxMonitorEvent event) {
-        if (Thread.currentThread().getName().equals(LOOPER_THREAD_NAME)) {
+        if (Thread.currentThread() == handlerThread) {
             System.out.println("already in a thread : " + Thread.currentThread().getName());
             saveEvent(event);
         } else {
@@ -138,7 +138,7 @@ public class FalxEventStore implements FalxEventStorable {
 
     @Override
     public void deleteOldEvents() {
-        if (Thread.currentThread().getName().equals(LOOPER_THREAD_NAME)) {
+        if (Thread.currentThread() == handlerThread) {
             System.out.println("already in a thread : " + Thread.currentThread().getName());
             deleteOldEventsFromDataStore();
         } else {
@@ -195,7 +195,7 @@ public class FalxEventStore implements FalxEventStorable {
 
     @Override
     public void deleteAllEvents() {
-        if (Thread.currentThread().getName().equals(LOOPER_THREAD_NAME)) {
+        if (Thread.currentThread() == handlerThread) {
             deleteAllEventsFromDataStore();
         } else {
             Flowable.just(1)
@@ -242,7 +242,7 @@ public class FalxEventStore implements FalxEventStorable {
      */
     @Override
     public List<AggregatedFalxMonitorEvent> aggregatedEvents(final String eventName, final boolean allowPartialDays) {
-        if (Thread.currentThread().getName().equals(LOOPER_THREAD_NAME)) {
+        if (Thread.currentThread() == handlerThread) {
             return aggregatedEventsFromDataStore(eventName, allowPartialDays);
         } else {
             return Flowable.just(1)
@@ -385,7 +385,7 @@ public class FalxEventStore implements FalxEventStorable {
 
     @Override
     public List<AggregatedFalxMonitorEvent> allAggregatedEvents(final boolean allowPartialDays) {
-        if (Thread.currentThread().getName().equals(LOOPER_THREAD_NAME)) {
+        if (Thread.currentThread() == handlerThread) {
             return allAggregatedEventsFromDatastore(allowPartialDays);
         } else {
             return Flowable.just(1)
@@ -428,7 +428,7 @@ public class FalxEventStore implements FalxEventStorable {
         //using dummy URI so we are not passing null in reactive stream
         final URI dummyUri = URI.create("file://dummy");
         URI uri;
-        if (Thread.currentThread().getName().equals(LOOPER_THREAD_NAME)) {
+        if (Thread.currentThread() == handlerThread) {
             uri = getURIForJSONFile(fileName, dummyUri);
         } else {
             uri = Flowable.just(1)
