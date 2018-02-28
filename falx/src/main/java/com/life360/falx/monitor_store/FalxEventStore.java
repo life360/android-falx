@@ -62,7 +62,7 @@ public class FalxEventStore implements FalxEventStorable {
         this.context = context;
         compositeDisposable = new CompositeDisposable();
 
-        handlerThread = new HandlerThread("LOOPER_SCHEDULER");
+        handlerThread = new HandlerThread(LOOPER_THREAD_NAME);
         handlerThread.start();
         synchronized (handlerThread) {
             looperScheduler = AndroidSchedulers.from(handlerThread.getLooper());
@@ -83,7 +83,6 @@ public class FalxEventStore implements FalxEventStorable {
     @Override
     public void save(final FalxMonitorEvent event) {
         if (Thread.currentThread() == handlerThread) {
-            System.out.println("already in a thread : " + Thread.currentThread().getName());
             saveEvent(event);
         } else {
             Flowable.just(1)
@@ -92,7 +91,6 @@ public class FalxEventStore implements FalxEventStorable {
                     .doOnNext(new Consumer<Integer>() {
                         @Override
                         public void accept(Integer integer) throws Exception {
-                            System.out.println("executing on : " + Thread.currentThread().getName());
                             saveEvent(event);
                         }
                     })
@@ -139,7 +137,6 @@ public class FalxEventStore implements FalxEventStorable {
     @Override
     public void deleteOldEvents() {
         if (Thread.currentThread() == handlerThread) {
-            System.out.println("already in a thread : " + Thread.currentThread().getName());
             deleteOldEventsFromDataStore();
         } else {
             Flowable.just(1)
@@ -148,7 +145,6 @@ public class FalxEventStore implements FalxEventStorable {
                     .doOnNext(new Consumer<Integer>() {
                         @Override
                         public void accept(Integer integer) throws Exception {
-                            System.out.println("executing on : " + Thread.currentThread().getName());
                             deleteOldEventsFromDataStore();
                         }
                     })
@@ -441,7 +437,6 @@ public class FalxEventStore implements FalxEventStorable {
     }
 
     private URI getURIForJSONFile(String fileName, URI dummyUri) {
-        System.out.println("testing thread name :" + Thread.currentThread().getName());
         Realm realm = null;
         try {
             deleteOldEvents();
