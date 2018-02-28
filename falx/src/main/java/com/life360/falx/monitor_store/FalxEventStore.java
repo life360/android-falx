@@ -258,12 +258,12 @@ public class FalxEventStore implements FalxEventStorable {
         }
     }
 
-    private List<AggregatedFalxMonitorEvent> aggregatedEventsFromDataStore(String eventName, boolean allowPartialDays) {
+    private List<AggregatedFalxMonitorEvent> aggregatedEventsFromDataStore(String eventName, final boolean allowPartialDays) {
         Realm realm = null;
         try {
-            List<AggregatedFalxMonitorEvent> aggregatedFalxEvents = new ArrayList<>();
+            final List<AggregatedFalxMonitorEvent> aggregatedFalxEvents = new ArrayList<>();
             realm = realmStore.realmInstance();
-            RealmResults<FalxEventEntity> events = realm.where(FalxEventEntity.class)
+            final RealmResults<FalxEventEntity> events = realm.where(FalxEventEntity.class)
                     .equalTo(FalxEventEntity.KEY_NAME, eventName)
                     .equalTo(FalxEventEntity.KEY_PROCESSED_FOR_AGGREGATION, false)
                     .findAllSorted(FalxEventEntity.KEY_TIMESTAMP, Sort.ASCENDING);
@@ -271,44 +271,49 @@ public class FalxEventStore implements FalxEventStorable {
             if (count <= 0) {
                 return aggregatedFalxEvents;
             }
-            RealmList<FalxEventEntity> processedEvents = new RealmList<>();
-            Date beginWindowDate = events.first().getTimestamp();
-            Map<String, Double> aggregatedArguments = new HashMap<>();
+            realm.executeTransaction(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    RealmList<FalxEventEntity> processedEvents = new RealmList<>();
+                    Date beginWindowDate = events.first().getTimestamp();
+                    Map<String, Double> aggregatedArguments = new HashMap<>();
 
-            for (FalxEventEntity event : events) {
-                Date currentEventDate = event.getTimestamp();
-                Calendar calBegin = Calendar.getInstance();
-                calBegin.setTime(beginWindowDate);
-                Calendar calCurrent = Calendar.getInstance();
-                calCurrent.setTime(currentEventDate);
-                if (isSameDate(calBegin, calCurrent)) {
-                    this.aggregateCurrentEvent(
-                            event,
-                            processedEvents,
-                            aggregatedArguments);
-                } else {
-                    appendEvent(
-                            beginWindowDate,
-                            processedEvents,
-                            aggregatedArguments,
-                            aggregatedFalxEvents);
-                    //for next event
-                    processedEvents.clear();
-                    aggregatedArguments.clear();
-                    beginWindowDate = currentEventDate;
-                    this.aggregateCurrentEvent(
-                            event,
-                            processedEvents,
-                            aggregatedArguments);
+                    for (FalxEventEntity event : events) {
+                        Date currentEventDate = event.getTimestamp();
+                        Calendar calBegin = Calendar.getInstance();
+                        calBegin.setTime(beginWindowDate);
+                        Calendar calCurrent = Calendar.getInstance();
+                        calCurrent.setTime(currentEventDate);
+                        if (isSameDate(calBegin, calCurrent)) {
+                            aggregateCurrentEvent(
+                                    event,
+                                    processedEvents,
+                                    aggregatedArguments);
+                        } else {
+                            appendEvent(
+                                    beginWindowDate,
+                                    processedEvents,
+                                    aggregatedArguments,
+                                    aggregatedFalxEvents);
+                            //for next event
+                            processedEvents.clear();
+                            aggregatedArguments.clear();
+                            beginWindowDate = currentEventDate;
+                            aggregateCurrentEvent(
+                                    event,
+                                    processedEvents,
+                                    aggregatedArguments);
+                        }
+                    }
+                    if (allowPartialDays) {
+                        appendEvent(
+                                beginWindowDate,
+                                processedEvents,
+                                aggregatedArguments,
+                                aggregatedFalxEvents);
+                    }
                 }
-            }
-            if (allowPartialDays) {
-                appendEvent(
-                        beginWindowDate,
-                        processedEvents,
-                        aggregatedArguments,
-                        aggregatedFalxEvents);
-            }
+            });
             return aggregatedFalxEvents;
         } finally {
             if (realm != null) {
@@ -317,7 +322,9 @@ public class FalxEventStore implements FalxEventStorable {
         }
     }
 
-
+    /*
+     * Must be called inside a transaction
+     */
     private void aggregateCurrentEvent(FalxEventEntity currentEntity,
                                        List<FalxEventEntity> processedEvents,
                                        Map<String, Double> aggregatedArguments) {
@@ -337,33 +344,20 @@ public class FalxEventStore implements FalxEventStorable {
     private AggregatedFalxMonitorEvent createAggregatedEvents(final RealmList<FalxEventEntity> events,
                                                               Map<String, Double> aggregatedArguments,
                                                               long timestamp) {
-        Realm realm = null;
-        try {
-            if (events == null || events.size() == 0) {
-                return null;
-            }
-            AggregatedFalxMonitorEvent aggregatedEvent = new AggregatedFalxMonitorEvent(
-                    events.first().getName(),
-                    events.size(),
-                    timestamp);
-            for (Map.Entry<String, Double> entry : aggregatedArguments.entrySet()) {
-                aggregatedEvent.putArgument(entry.getKey(), entry.getValue());
-            }
-            realm = realmStore.realmInstance();
-            realm.executeTransaction(new Realm.Transaction() {
-                @Override
-                public void execute(@NonNull Realm realm) {
-                    for (FalxEventEntity event : events) {
-                        event.setProcessedForAggregation(true);
-                    }
-                }
-            });
-            return aggregatedEvent;
-        } finally {
-            if (realm != null) {
-                realm.close();
-            }
+        if (events == null || events.size() == 0) {
+            return null;
         }
+        AggregatedFalxMonitorEvent aggregatedEvent = new AggregatedFalxMonitorEvent(
+                events.first().getName(),
+                events.size(),
+                timestamp);
+        for (Map.Entry<String, Double> entry : aggregatedArguments.entrySet()) {
+            aggregatedEvent.putArgument(entry.getKey(), entry.getValue());
+        }
+        for (FalxEventEntity event : events) {
+            event.setProcessedForAggregation(true);
+        }
+        return aggregatedEvent;
     }
 
     private void appendEvent(Date beginWindowDate,
