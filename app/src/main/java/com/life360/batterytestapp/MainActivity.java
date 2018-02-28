@@ -92,10 +92,14 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         findViewById(R.id.trigger_realtime_event).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Random random = new Random();
-                int bytes = random.nextInt(10000);
-                RealtimeMessagingActivity rtActivity = new RealtimeMessagingActivity(1, bytes, "mqtt");
-                falxApi.realtimeMessageReceived(rtActivity);
+
+                for (int i = 0; i < 100; i++) {
+                    Random random = new Random();
+                    int bytes = random.nextInt(10000);
+                    RealtimeMessagingActivity rtActivity = new RealtimeMessagingActivity(1, bytes, "mqtt");
+                    falxApi.realtimeMessageReceived(rtActivity);
+                }
+
             }
         });
 
@@ -271,15 +275,16 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void showLogs(@NonNull URI uri) throws IOException {
-
+        if (uri == null) {
+            Toast.makeText(this, "file uri is null", Toast.LENGTH_SHORT).show();
+            return;
+        }
         File file = new File(uri);
-
         StringBuilder text = new StringBuilder();
         BufferedReader br = null;
         try {
             br = new BufferedReader(new FileReader(file));
             String line;
-
             while ((line = br.readLine()) != null) {
                 text.append(line);
                 text.append('\n');
@@ -291,7 +296,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 br.close();
             }
         }
-
         Toast.makeText(this, text.toString(), Toast.LENGTH_LONG).show();
 
     }
