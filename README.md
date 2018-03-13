@@ -82,3 +82,9 @@ Send a mail to this group for help or if you have questions: falx@life360.com
 Please see [guidelines] (https://github.com/life360/android-falx/blob/master/CONTRIBUTING.md)
 
 
+## Project Maintainers
+Primary maintainer: [skremon](https://github.com/skremon) remon@life360.com 
+
+Additional maintainers: [vikassable](https://github.com/vikassable) vikas@life360.com 
+
+Primary maintainer will be a employee of Life360 Inc. and there can be 1+ additional maintainers.
