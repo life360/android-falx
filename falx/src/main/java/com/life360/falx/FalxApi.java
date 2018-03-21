@@ -64,8 +64,8 @@ import io.reactivex.subjects.PublishSubject;
 public class FalxApi {
 
     public static final int MONITOR_APP_STATE = 0x01;
-    public static final int MONITOR_NETWORK = 0x02;
-    public static final int MONITOR_REALTIME_MESSAGING = 0x03;
+    public static final int MONITOR_NETWORK = 1 << 1;
+    public static final int MONITOR_REALTIME_MESSAGING = 1 << 2;
 
     // .. and so on
 

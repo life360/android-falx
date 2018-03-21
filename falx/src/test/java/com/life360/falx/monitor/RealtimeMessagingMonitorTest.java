@@ -51,8 +51,9 @@ public class RealtimeMessagingMonitorTest {
                 .build();
 
         PublishSubject<RealtimeMessagingActivity> rtMessagingPublishSubject = PublishSubject.create();
+        PublishSubject<RealtimeMessagingSession> realtimeMessagingSessionObservable = PublishSubject.create();
 
-        RealtimeMessagingMonitor monitor = new RealtimeMessagingMonitor(testUtilComponent, rtMessagingPublishSubject) {
+        RealtimeMessagingMonitor monitor = new RealtimeMessagingMonitor(testUtilComponent, rtMessagingPublishSubject, realtimeMessagingSessionObservable) {
             @Override
             protected void saveToDataStore(RealtimeMessagingActivity activity) {
                 // do nothing.
