@@ -339,6 +339,12 @@ public class FalxApi {
         appStateListeners.clear();
     }
 
+    /**
+     * Enables or disable Android logs.
+     * Most common tag used is 'FalxApi'
+     *
+     * @param enable
+     */
     public void enableLogging(boolean enable) {
         logger.setEnabled(enable);
         if (falxInterceptor != null) {
@@ -481,7 +487,7 @@ public class FalxApi {
     }
 
     /**
-     * get aggregated events for the provided event
+     * Get aggregated events for the provided event.
      *
      * @param eventName name of event
      * @return list of aggregated Falx monitor events
@@ -494,9 +500,9 @@ public class FalxApi {
     }
 
     /**
-     * get aggregated events for the provided event, also partial day option is available
+     * Get aggregated events for the provided event, also partial day option is available.
      *
-     * @param eventName        name of event
+     * @param eventName name of event
      * @param allowPartialDays if true partial day's data also included
      * @return list of aggregated Falx monitor events
      */
@@ -508,7 +514,7 @@ public class FalxApi {
     }
 
     /**
-     * get all aggregated events
+     * Get all aggregated events logged by Falx.
      *
      * @param allowPartialDays if true partial day's data also included
      * @return list of aggregated Falx monitor events
@@ -521,14 +527,15 @@ public class FalxApi {
     }
 
     /**
-     * get JSON file URI which contains all Falx events
+     * Get all logged events written to a file and get the URI for the file.
+     * The events are written in JSON format.
      *
-     * @param fileName provide name to the JSON file created e.g Falx_Logs_(Users’ Email)_d_(user’s device ID)_u_(user’s user id)
+     * @param fileName provide name to the JSON file created e.g Falx_Logs_*.log
      * @return URI of the newly created file
      */
-    public URI eventToJSON(@NonNull String fileName) {
+    public URI writeEventsToFile(@NonNull String fileName) {
         if (eventStorable != null) {
-            return eventStorable.eventToJSONFile(fileName);
+            return eventStorable.writeEventsToJSONFile(fileName);
         }
         return null;
     }
@@ -541,5 +548,4 @@ public class FalxApi {
             eventStorable.deleteAllEvents();
         }
     }
-
 }

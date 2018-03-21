@@ -117,7 +117,7 @@ public class FakeFalxEventStore implements FalxEventStorable {
     }
 
     @Override
-    public URI eventToJSONFile(String fileName) {
+    public URI writeEventsToJSONFile(String fileName) {
         this.deleteOldEvents();
 
         // todo

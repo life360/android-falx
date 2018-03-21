@@ -46,7 +46,7 @@ public class AggregatedFalxMonitorEvent {
     }
 
     /**
-     * Reterun a JSONObject containing the key-value pairs for the event
+     * Return a JSONObject containing the key-value pairs for the event
      * @throws JSONException
      */
     public JSONObject getParamsAsJson() throws JSONException {

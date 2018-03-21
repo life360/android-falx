@@ -29,6 +29,8 @@ import org.json.JSONObject;
 import java.util.List;
 
 /**
+ * A service that demonstrates how to get battery stats logged by Falx.
+ *
  * Created by remon on 10/6/17.
  */
 
@@ -36,11 +38,11 @@ public class BatteryStatReporter extends IntentService {
     private static final String TAG = "BatteryStatReporter";
 
     /* Service settings */
-    private static final String ACTION_SEND_LOGS = ".ACTION_SEND_LOGS";
+    private static final String ACTION_READ_LOGS = ".ACTION_READ_LOGS";
 
-    public static void sendLogs(Context context) {
+    public static void readLogs(Context context) {
         Intent intent = new Intent(context, BatteryStatReporter.class);
-        intent.setAction(context.getPackageName() + ACTION_SEND_LOGS);
+        intent.setAction(context.getPackageName() + ACTION_READ_LOGS);
         context.startService(intent);
     }
 
@@ -60,14 +62,18 @@ public class BatteryStatReporter extends IntentService {
 
         String action = intent.getAction();
 
-        if (action.endsWith(ACTION_SEND_LOGS)) {
-            Log.d(TAG, "Sending battery logs...");
+        if (action.endsWith(ACTION_READ_LOGS)) {
+            Log.d(TAG, "Reading battery logs...");
 
-            // Test fetching aggregated events from FalxApi:
-            List<AggregatedFalxMonitorEvent> aggregatedFalxMonitorEvents = FalxApi.getInstance(this).allAggregatedEvents(true);
+            // Fetch aggregated events from FalxApi:
+            List<AggregatedFalxMonitorEvent> aggregatedFalxMonitorEvents =
+                    FalxApi.getInstance(this).allAggregatedEvents(true);
 
             for (AggregatedFalxMonitorEvent event : aggregatedFalxMonitorEvents) {
                 Log.d(TAG, event.toString());
+
+                // You can get logged key-value pairs for each event from the AggregatedFalxMonitorEvent object
+                // AggregatedFalxMonitorEvent.getName() will give you the name of the monitor
 
                 JSONObject params;
 
@@ -77,8 +83,6 @@ public class BatteryStatReporter extends IntentService {
                 } catch (JSONException e) {
                     Log.e(TAG, e.toString());
                 }
-
-
             }
 
             Intent broadcastIntent = new Intent("ACTION_SEND_BATTERY_STATS_RESULT");

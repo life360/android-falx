@@ -428,7 +428,7 @@ public class FalxEventStore implements FalxEventStorable {
     }
 
     @Override
-    public URI eventToJSONFile(@NonNull final String fileName) {
+    public URI writeEventsToJSONFile(@NonNull final String fileName) {
         //using dummy URI so we are not passing null in reactive stream
         final URI dummyUri = URI.create("file://dummy");
         URI uri;

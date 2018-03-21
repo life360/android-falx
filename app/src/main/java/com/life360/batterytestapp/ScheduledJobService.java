@@ -27,16 +27,18 @@ import android.util.Log;
 
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public class ScheduledJobService extends JobService {
+    private static final String TAG = "ScheduledJobService";
+
     static final int JOB_ID_BATTERY_STATS = 100;
 
     @Override
     public boolean onStartJob(JobParameters jobParameters) {
         PersistableBundle bundle = jobParameters.getExtras();
 
-        Log.d("rk-dbg", "onStartJob ID " + jobParameters.getJobId());
+        Log.d(TAG, "onStartJob ID " + jobParameters.getJobId());
 
         if (jobParameters.getJobId() == JOB_ID_BATTERY_STATS) {
-            BatteryStatReporter.sendLogs(this);
+            BatteryStatReporter.readLogs(this);
             return true;
         }
 
@@ -45,7 +47,7 @@ public class ScheduledJobService extends JobService {
 
     @Override
     public boolean onStopJob(JobParameters jobParameters) {
-        Log.d("rk-dbg", "onStopJob ID " + jobParameters.getJobId());
+        Log.d(TAG, "onStopJob ID " + jobParameters.getJobId());
         return false;
     }
 }

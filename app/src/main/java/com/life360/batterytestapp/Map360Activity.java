@@ -58,8 +58,11 @@ import retrofit2.Response;
 
 import static android.app.job.JobInfo.NETWORK_TYPE_ANY;
 
-public class MainActivity extends FragmentActivity implements OnMapReadyCallback {
-    public static final String LOGTAG = "FalxDebugActivity";
+/**
+ * This Activity is used to demonstrate use of several features of the Falx library.
+ */
+public class Map360Activity extends FragmentActivity implements OnMapReadyCallback {
+    public static final String TAG = "Map360Activity";
 
     public static final String MONITOR_LABEL_GPS = "GPS";
     public static final String EVENT_GPS_ON = "gps-on";
@@ -80,26 +83,36 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_maps);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        falxApi = FalxApi.getInstance(MainActivity.this);
+
+        // Add Monitors to Falx
+        falxApi = FalxApi.getInstance(Map360Activity.this);
+
+        // We would like to see Android logs using adb
         falxApi.enableLogging(true);
+
         falxApi.addMonitors(FalxApi.MONITOR_APP_STATE | FalxApi.MONITOR_NETWORK | FalxApi.MONITOR_REALTIME_MESSAGING);
+
         falxApi.addOnOffMonitor(MONITOR_LABEL_GPS, EVENT_GPS_ON);
         falxApi.addOnOffMonitor(MONITOR_LABEL_ACTIVITY_DETECTION, EVENT_ACTIVITY_DETECTION_ON);
+
         falxApi.addWakelockMonitor(MONITOR_LABEL_WAKELOCK, EVENT_WAKELOCK_ACQUIRED);
         falxApi.addWakelockMonitor(MONITOR_LABEL_WAKELOCK2, EVENT_WAKELOCK_ACQUIRED);
+
+
+        // The following listeners are used to trigger different Falx events:
 
         findViewById(R.id.trigger_stats).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Log.d(LOGTAG, "Test aggregate data query...");
+                Log.d(TAG, "Test aggregate data query...");
 
-                BatteryStatReporter.sendLogs(MainActivity.this);
+                BatteryStatReporter.readLogs(Map360Activity.this);
             }
         });
 
@@ -117,11 +130,12 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
+        // Print Falx logs to a file:
         findViewById(R.id.get_events_json).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 try {
-                    showLogs(FalxApi.getInstance(MainActivity.this).eventToJSON("falx_logs_test.log"));
+                    showLogs(FalxApi.getInstance(Map360Activity.this).writeEventsToFile("falx_logs_test.log"));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -132,11 +146,11 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onClick(View v) {
                 logging = !logging;
-                FalxApi.getInstance(MainActivity.this).enableLogging(logging);
+                FalxApi.getInstance(Map360Activity.this).enableLogging(logging);
                 if (logging) {
-                    Toast.makeText(MainActivity.this, "Falx Logging enabled.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(Map360Activity.this, "Falx Logging enabled.", Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(MainActivity.this, "Falx Logging disabled.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(Map360Activity.this, "Falx Logging disabled.", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -148,7 +162,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                     wakelockAcquireTime = System.currentTimeMillis();
                     falxApi.wakelockAcquired(MONITOR_LABEL_WAKELOCK, DateUtils.MINUTE_IN_MILLIS);
                 } else {
-                    Log.d(LOGTAG, "Wakelock held for " + (System.currentTimeMillis() - wakelockAcquireTime) + " ms");
+                    Log.d(TAG, "Wakelock held for " + (System.currentTimeMillis() - wakelockAcquireTime) + " ms");
                     falxApi.wakelockReleased(MONITOR_LABEL_WAKELOCK);
                 }
             }
@@ -161,7 +175,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                     wakelock2AcquireTime = System.currentTimeMillis();
                     falxApi.wakelockAcquired(MONITOR_LABEL_WAKELOCK2);
                 } else {
-                    Log.d(LOGTAG, "Wakelock held for " + (System.currentTimeMillis() - wakelock2AcquireTime) + " ms");
+                    Log.d(TAG, "Wakelock held for " + (System.currentTimeMillis() - wakelock2AcquireTime) + " ms");
                     falxApi.wakelockReleased(MONITOR_LABEL_WAKELOCK2);
                 }
             }
@@ -170,12 +184,21 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         findViewById(R.id.trigger_deleteall_event).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.e("rk-dbg", "Deleting all stored events...");
+                Log.e(TAG, "Deleting all stored events...");
                 falxApi.deleteAllEvents();
-                Log.e("rk-dbg", "Deletion complete");
+                Log.e(TAG, "Deletion complete");
             }
         });
 
+
+        // Schedule regular checks to read Falx stats
+        scheduleJobToReadSavedStats();
+    }
+
+    // Schedule a job with JobScheduler (if needed) that periodically triggers ScheduledJobService to run.
+    // The purpose of ScheduledJobService is to read saved stats by Falx in a regular interval.
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    private void scheduleJobToReadSavedStats() {
         JobScheduler jobScheduler = (JobScheduler) this.getSystemService(Context.JOB_SCHEDULER_SERVICE);
 
         List<JobInfo> pendingJobs = jobScheduler.getAllPendingJobs();
@@ -195,9 +218,9 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             JobInfo jobInfo = builder.build();
 
             int schRes = jobScheduler.schedule(jobInfo);
-            Log.d(LOGTAG, "Job scheduling result: " + schRes);
+            Log.d(TAG, "Job scheduling result: " + schRes);
         } else {
-            Log.d(LOGTAG, "Battery stat reporter job already scheduled");
+            Log.d(TAG, "Battery stat reporter job already scheduled");
         }
     }
 
@@ -206,7 +229,11 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         super.onStart();
 
         sessionStartTime = System.currentTimeMillis();
+
+        // Indicate to Falx start of a Session
         falxApi.startSession(this);
+
+        // Some monitors can be turned On when a Activity is visible, and turned off when they are no longer visible
         falxApi.turnedOn(MONITOR_LABEL_GPS);
         falxApi.turnedOn(MONITOR_LABEL_ACTIVITY_DETECTION);
     }
@@ -217,6 +244,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
         falxApi.turnedOff(MONITOR_LABEL_GPS);
         falxApi.turnedOff(MONITOR_LABEL_ACTIVITY_DETECTION);
+
+        // Indicate to Falx end of a Session
         falxApi.endSession(this);
 
         // Test FalxApi.realtimeMessageSessionCompleted()
@@ -232,11 +261,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     /**
      * Manipulates the map once available.
      * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
      */
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -251,10 +275,10 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onMapLongClick(LatLng latLng) {
 
-                Log.d(LOGTAG, "Map long click rev-geocoding: " + latLng.toString());
+                Log.d(TAG, "Map long click rev-geocoding: " + latLng.toString());
 
                 // Try a reverse geocode
-                GooglePlatform.getInterface(MainActivity.this)
+                GooglePlatform.getInterface(Map360Activity.this)
                         .reverseGeocode(String.format(Locale.US, "%f,%f", latLng.latitude, latLng.longitude), Locale.getDefault().getLanguage())
                         .enqueue(new Callback<GeocodeResponse>() {
                             @Override
@@ -268,11 +292,11 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                                         address = results.formattedAddress;
                                     }
 
-                                    Log.d(LOGTAG, "Rev geocode response: " + address);
-                                    Toast.makeText(MainActivity.this, address, Toast.LENGTH_SHORT).show();
+                                    Log.d(TAG, "Rev geocode response: " + address);
+                                    Toast.makeText(Map360Activity.this, address, Toast.LENGTH_SHORT).show();
                                 } else {
                                     try {
-                                        Log.e(LOGTAG, "Error in response: " + response.errorBody().string());
+                                        Log.e(TAG, "Error in response: " + response.errorBody().string());
                                     } catch (IOException e) {
                                     }
                                 }
@@ -280,7 +304,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
                             @Override
                             public void onFailure(Call<GeocodeResponse> call, Throwable t) {
-                                Log.e(LOGTAG, "Call failure: " + t.toString());
+                                Log.e(TAG, "Call failure: " + t.toString());
                             }
                         });
             }
@@ -293,6 +317,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             Toast.makeText(this, "file uri is null", Toast.LENGTH_SHORT).show();
             return;
         }
+
         File file = new File(uri);
         StringBuilder text = new StringBuilder();
         BufferedReader br = null;
@@ -304,13 +329,13 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 text.append('\n');
             }
         } catch (IOException e) {
-            Log.d("vs-dbg", "file read failed", e.getCause());
+            Log.d(TAG, "file read failed", e.getCause());
         } finally {
             if (br != null) {
                 br.close();
             }
         }
-        Toast.makeText(this, text.toString(), Toast.LENGTH_LONG).show();
 
+        Toast.makeText(this, text.toString(), Toast.LENGTH_LONG).show();
     }
 }

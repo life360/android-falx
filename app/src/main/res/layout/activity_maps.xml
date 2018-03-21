@@ -3,12 +3,14 @@
     android:layout_height="match_parent">
 
     <Button
+        style="@android:style/Widget.Button"
         android:id="@+id/trigger_stats"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@android:drawable/stat_sys_upload_done" />
+        android:text="Read Logs"/>
 
     <Button
+        style="@android:style/Widget.Button"
         android:id="@+id/trigger_logging"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -17,14 +19,16 @@
         android:text="!Log" />
 
     <Button
+        style="@android:style/Widget.Button"
         android:id="@+id/trigger_realtime_event"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_below="@id/trigger_logging"
-        android:background="@android:drawable/btn_default"
         android:text="RTMsg" />
+
     <Button
+        style="@android:style/Widget.Button"
         android:id="@+id/trigger_deleteall_event"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -34,13 +38,14 @@
         android:text="DelAll" />
 
     <Button
+        style="@android:style/Widget.Button"
         android:id="@+id/get_events_json"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/trigger_logging"
         android:text="get events in json format" />
 
-    <fragment xmlns:map="http://schemas.android.com/apk/res-auto"
+    <fragment
         xmlns:tools="http://schemas.android.com/tools"
         android:id="@+id/map"
         android:name="com.google.android.gms.maps.SupportMapFragment"
@@ -84,4 +89,12 @@
         android:layout_marginStart="20dp"
         android:layout_toRightOf="@+id/wakeLock2Text" />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="36dp"
+        android:textColor="@android:color/white"
+        android:text="Long press on Map to make a RGC a location"/>
 </RelativeLayout>

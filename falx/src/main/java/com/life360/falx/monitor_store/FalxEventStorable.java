@@ -40,7 +40,7 @@ public interface FalxEventStorable {
 
     List<AggregatedFalxMonitorEvent> allAggregatedEvents(boolean allowPartialDays);
 
-    URI eventToJSONFile(String fileName);
+    URI writeEventsToJSONFile(String fileName);
 
     void subscribeToEvents(Observable<FalxMonitorEvent> observable);
 

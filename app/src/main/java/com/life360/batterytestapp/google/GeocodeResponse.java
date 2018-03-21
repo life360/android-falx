@@ -19,6 +19,8 @@ import com.google.gson.annotations.SerializedName;
 import java.util.List;
 
 /**
+ * Model for Geocoding api responses from Google Maps API.
+ *
  * Created by remon on 9/19/17.
  */
 

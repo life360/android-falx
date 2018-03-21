@@ -30,7 +30,7 @@
             android:value="@string/google_maps_key" />
 
         <activity
-            android:name="com.life360.batterytestapp.MainActivity"
+            android:name="com.life360.batterytestapp.Map360Activity"
             android:label="@string/title_activity_maps">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -39,12 +39,11 @@
             </intent-filter>
         </activity>
 
-        <service android:name="com.life360.batterytestapp.BatteryStatReporter"
-            />
+        <service android:name="com.life360.batterytestapp.BatteryStatReporter" />
 
-        <service android:name="com.life360.batterytestapp.ScheduledJobService"
-            android:permission="android.permission.BIND_JOB_SERVICE"
-            />
+        <service
+            android:name="com.life360.batterytestapp.ScheduledJobService"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
     </application>
 
 </manifest>

@@ -14,7 +14,6 @@
 
 package com.life360.falx.dagger;
 
-import android.app.Application;
 import android.content.Context;
 
 import javax.inject.Singleton;
