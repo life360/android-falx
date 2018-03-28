@@ -8,9 +8,10 @@ We wanted to create a tool that can be integrated with apps to collect data over
 
 # Getting Started
 ## Download
-Get the library from [jitpack] (https://jitpack.io/#life360/android-falx/0.2.5)
+Get the library from [jitpack] (https://jitpack.io/#life360/android-falx/0.2.6)
 
 [![](https://jitpack.io/v/life360/android-falx.svg)](https://jitpack.io/#life360/android-falx)
+
 
 Android SDK requirement: Mininum Api level 15.
 
