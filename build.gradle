@@ -25,6 +25,12 @@ allprojects {
             url "https://maven.google.com"
         }
     }
+
+    // Better Test Output while running tests
+    tasks.matching { it instanceof Test }.all {
+        testLogging.events = ["failed", "passed", "skipped"]
+        outputs.upToDateWhen { false }
+    }
 }
 
 task clean(type: Delete) {
