@@ -56,7 +56,7 @@ public class FalxRealm implements RealmStore {
                         @Override
                         public boolean shouldCompact(long totalBytes, long usedBytes) {
                             Log.d("size", "total :" + totalBytes + "  used :" + usedBytes);
-                            return true;
+                            return false;
                         }
                     })
                     .build();
