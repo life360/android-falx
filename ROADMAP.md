@@ -17,6 +17,8 @@ Alpha version
 
 -- Improve test coverage, especially with the APIs that get results from Falx.
 
+-- Define branches for development and stable release.
+
 
 ## Version 1.x.y
 Stable Beta version.
