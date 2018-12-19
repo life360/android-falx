@@ -276,7 +276,8 @@ public class FalxEventStore implements FalxEventStorable {
             final RealmResults<FalxEventEntity> events = realm.where(FalxEventEntity.class)
                     .equalTo(FalxEventEntity.KEY_NAME, eventName)
                     .equalTo(FalxEventEntity.KEY_PROCESSED_FOR_AGGREGATION, false)
-                    .findAllSorted(FalxEventEntity.KEY_TIMESTAMP, Sort.ASCENDING);
+                    .sort(FalxEventEntity.KEY_TIMESTAMP, Sort.ASCENDING)
+                    .findAll();
             int count = events.size();
             if (count <= 0) {
                 return aggregatedFalxEvents;
@@ -409,7 +410,7 @@ public class FalxEventStore implements FalxEventStorable {
         Realm realm = null;
         try {
             realm = realmStore.realmInstance();
-            RealmResults<FalxEventEntity> allDistinctNameEvents = realm.where(FalxEventEntity.class).distinct(FalxEventEntity.KEY_NAME);
+            RealmResults<FalxEventEntity> allDistinctNameEvents = realm.where(FalxEventEntity.class).distinct(FalxEventEntity.KEY_NAME).findAll();
             List<AggregatedFalxMonitorEvent> allEvents = new ArrayList<>();
             for (int i = 0; i < allDistinctNameEvents.size(); i++) {
                 List<AggregatedFalxMonitorEvent> events = aggregatedEvents(
@@ -460,7 +461,8 @@ public class FalxEventStore implements FalxEventStorable {
             File jsonFile = new File(context.getCacheDir(), fileName);
             realm = realmStore.realmInstance();
             RealmResults<FalxEventEntity> allRealmEvents = realm.where(FalxEventEntity.class)
-                    .findAllSorted(FalxEventEntity.KEY_TIMESTAMP, Sort.ASCENDING);
+                    .sort(FalxEventEntity.KEY_TIMESTAMP, Sort.ASCENDING)
+                    .findAll();
             if (allRealmEvents.size() <= 0) {
                 return dummyUri;
             }
