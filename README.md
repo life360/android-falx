@@ -84,8 +84,8 @@ Please see [contributing guidelines](https://github.com/life360/android-falx/blo
 
 
 ## Project Maintainers
-Primary maintainer: [skremon](https://github.com/skremon) remon@life360.com 
+Primary maintainer: TBD
 
-Additional maintainers: [vikassable](https://github.com/vikassable) vikas@life360.com 
+Additional maintainers: [skremon](https://github.com/skremon) skremon@gmail.com
 
 Primary maintainer will be an employee of Life360 Inc. and there can be 1+ additional maintainers.
